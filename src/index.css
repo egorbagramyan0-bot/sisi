@@ -3617,7 +3617,7 @@ section[id] {
     height: 100%;
     background-image: url('/heromobile.webp');
     background-size: cover;
-    background-position: center;
+    background-position: 75% center;
     z-index: 1;
   }
 
