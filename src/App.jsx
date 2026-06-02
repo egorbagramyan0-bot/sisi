@@ -195,7 +195,7 @@ function App() {
         metaDesc.setAttribute('content', 'История Cafe Sisi - семейного cafe, вдохновленного итальянской кухней. Авторский проект ресторатора и шеф-повара Владимира Бектемирова в центре Ростова-на-Дону.');
       }
     } else {
-      document.title = "Cafe Sisi | Итальянский ресторан в Москве";
+      document.title = "Cafe Sisi | Итальянский ресторан в Ростове-на-Дону";
       const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) {
         metaDesc.setAttribute('content', 'Ресторан итальянской кухни Cafe Sisi. Традиционные рецепты, свежая домашняя паста и уютная атмосфера Тосканы.');
@@ -1091,6 +1091,7 @@ function App() {
         <>
           {/* 2. Hero Section - Facade with Live Video Windows */}
           <section className="hero-facade-section">
+            <h1 className="sr-only">Cafe Sisi — Итальянский ресторан в Ростове-на-Дону</h1>
             {/* Soft left gradient fade-out for improved readability on desktop */}
             <div className="hero-left-fade-overlay" />
 
