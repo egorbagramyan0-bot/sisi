@@ -571,8 +571,7 @@ function App() {
           >
             <div className="navbar-container">
               <a href="/" onClick={(e) => handleNavClick(e, '/')} className="logo-container">
-                <img src="/cafe_sisi_logo_transparent.svg" className="logo-svg desktop-logo" alt="Cafe Sisi Italy" />
-                <span className="mobile-logo-text">Cafe Sisi</span>
+                <img src="/cafe_sisi_logo_transparent.svg" className="logo-svg" alt="Cafe Sisi Italy" />
               </a>
 
               {/* Desktop Links */}

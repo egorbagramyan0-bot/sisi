@@ -3794,19 +3794,6 @@ section[id] {
     pointer-events: auto !important;
   }
 
-  .logo-svg.desktop-logo {
-    display: none !important;
-  }
-
-  .mobile-logo-text {
-    display: block !important;
-    font-family: var(--font-display);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-size: 16px;
-    color: var(--text-dark);
-  }
 
   /* Keep toggle color dark charcoal for contrast against cream island background */
   .mobile-toggle {
@@ -3951,8 +3938,4 @@ section[id] {
   -webkit-backface-visibility: hidden;
 }
 
-/* Hide mobile-only logo text on desktop */
-.mobile-logo-text {
-  display: none;
-}
 
