@@ -2364,11 +2364,8 @@ section[id] {
 
 .vladimir-hero-img {
   width: 100%;
-  aspect-ratio: 3 / 4;
+  height: 100%;
   object-fit: cover;
-  border-radius: 20px;
-  box-shadow: var(--shadow-soft);
-  border: 1px solid var(--border-medium);
 }
 
 .about-intro-right {
@@ -2820,7 +2817,7 @@ section[id] {
     order: 1;
   }
 
-  .vladimir-hero-img {
+  .vladimir-img-wrapper {
     aspect-ratio: 1 / 1;
     max-width: 500px;
     margin: 0 auto;
@@ -3666,10 +3663,10 @@ section[id] {
     height: 100%;
     background: linear-gradient(
       to bottom,
-      rgba(33, 27, 24, 0.45) 0%,
-      rgba(33, 27, 24, 0.1) 45%,
-      rgba(33, 27, 24, 0.1) 60%,
-      rgba(33, 27, 24, 0.65) 100%
+      rgba(33, 27, 24, 0.65) 0%,
+      rgba(33, 27, 24, 0.35) 45%,
+      rgba(33, 27, 24, 0.35) 60%,
+      rgba(33, 27, 24, 0.8) 100%
     );
     z-index: 2;
     pointer-events: none;
@@ -3783,11 +3780,19 @@ section[id] {
 
   /* Overrides when mobile menu is active */
   .navbar.mobile-menu-active {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+    width: 100vw !important;
+    margin-top: 0 !important;
+    padding: 16px 24px !important;
     background: transparent !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     border-color: transparent !important;
     box-shadow: none !important;
+    z-index: 200 !important;
   }
 
   .navbar.mobile-menu-active .logo-container {
@@ -3798,5 +3803,92 @@ section[id] {
   .navbar.mobile-menu-active .mobile-toggle {
     color: var(--text-dark) !important;
   }
+}
+
+/* ==========================================================================
+   Scroll to Top Floating Action Button
+   ========================================================================== */
+.scroll-to-top {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--text-dark);
+  color: var(--bg-primary);
+  border: 1px solid rgba(244, 239, 234, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 99;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scroll-to-top:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.scroll-to-top:active {
+  transform: translateY(0) scale(0.95);
+}
+
+@media (max-width: 768px) {
+  .scroll-to-top {
+    bottom: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ==========================================================================
+   Vladimir Bektemirov Portrait Wrapper
+   ========================================================================== */
+.vladimir-img-wrapper {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--border-medium);
+}
+
+.vladimir-img-wrapper .vladimir-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ==========================================================================
+   Smooth Ken Burns / Zoom Animation for About Us Images
+   ========================================================================== */
+@keyframes smooth-zoom-loop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.vladimir-img-wrapper img,
+.about-concept-img-wrapper img,
+.cathedral-img-main img,
+.cathedral-img-sub img,
+.about-team-img-wrapper img {
+  animation: smooth-zoom-loop 20s ease-in-out infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 

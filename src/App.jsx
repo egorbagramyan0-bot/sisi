@@ -8,7 +8,8 @@ import {
   X, 
   ChevronRight, 
   Play, 
-  Pause 
+  Pause,
+  ArrowUp
 } from 'lucide-react';
 import BookingModal from './BookingModal';
 import WineCardModal from './WineCardModal';
@@ -111,6 +112,7 @@ function App() {
   const [storyPlaying, setStoryPlaying] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('');
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const [videoLoadedStates, setVideoLoadedStates] = useState({ left: false, middle: false, right: false });
   const [minTimePassed, setMinTimePassed] = useState(() => {
@@ -345,6 +347,12 @@ function App() {
         setIsScrolled(true);
       } else {
         setIsScrolled(false);
+      }
+
+      if (window.scrollY > 400) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
       }
 
       if (currentPath === '/menu') {
@@ -845,12 +853,14 @@ function App() {
             <section className="about-intro-section">
               <div className="about-intro-grid">
                 <div className="about-intro-left">
-                  <AboutImage 
-                    src={RESTAURANT_INFO.images.vladimirHero} 
-                    alt="Портрет Владимира Бектемирова" 
-                    label="Владимир Бектемиров"
-                    className="vladimir-hero-img"
-                  />
+                  <div className="vladimir-img-wrapper">
+                    <AboutImage 
+                      src={RESTAURANT_INFO.images.vladimirHero} 
+                      alt="Портрет Владимира Бектемирова" 
+                      label="Владимир Бектемиров"
+                      className="vladimir-hero-img"
+                    />
+                  </div>
                 </div>
                 <div className="about-intro-right">
                   <span className="section-label">Шеф-повар и ресторатор</span>
@@ -1608,6 +1618,22 @@ function App() {
               />
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            className="scroll-to-top"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            aria-label="Наверх"
+          >
+            <ArrowUp size={20} />
+          </motion.button>
         )}
       </AnimatePresence>
     </>
