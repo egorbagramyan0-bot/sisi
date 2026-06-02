@@ -212,45 +212,55 @@ function App() {
 
   const handleNavClick = (e, target) => {
     if (e) e.preventDefault();
+    
+    const wasMenuOpen = mobileMenuOpen;
     setMobileMenuOpen(false);
     
-    // Parse target path and hash
-    const targetPath = target.startsWith('/#') ? '/' : target;
-    const hash = target.startsWith('/#') ? target.split('#')[1] : null;
+    const action = () => {
+      // Parse target path and hash
+      const targetPath = target.startsWith('/#') ? '/' : target;
+      const hash = target.startsWith('/#') ? target.split('#')[1] : null;
 
-    if (targetPath === currentPath) {
-      if (hash) {
-        const el = document.getElementById(hash);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-      return;
-    }
-
-    // Trigger page transition loading overlay
-    setIsTransitioning(true);
-    
-    // Wait for the overlay to fully fade in (500ms)
-    setTimeout(() => {
-      window.history.pushState({}, '', targetPath);
-      setCurrentPath(targetPath);
-      
-      if (hash) {
-        // scroll instantly to section under the cover
-        setTimeout(() => {
+      if (targetPath === currentPath) {
+        if (hash) {
           const el = document.getElementById(hash);
-          if (el) el.scrollIntoView({ behavior: 'auto' });
-        }, 50);
-      } else {
-        window.scrollTo(0, 0);
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        return;
       }
-    }, 500);
 
-    // Fade out overlay after transition finishes (1200ms)
-    setTimeout(() => {
-      setIsTransitioning(false);
-    }, 1200);
+      // Trigger page transition loading overlay
+      setIsTransitioning(true);
+      
+      // Wait for the overlay to fully fade in (500ms)
+      setTimeout(() => {
+        window.history.pushState({}, '', targetPath);
+        setCurrentPath(targetPath);
+        
+        if (hash) {
+          // scroll instantly to section under the cover
+          setTimeout(() => {
+            const el = document.getElementById(hash);
+            if (el) el.scrollIntoView({ behavior: 'auto' });
+          }, 50);
+        } else {
+          window.scrollTo(0, 0);
+        }
+      }, 500);
+
+      // Fade out overlay after transition finishes (1200ms)
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 1200);
+    };
+
+    if (wasMenuOpen) {
+      setTimeout(action, 450);
+    } else {
+      action();
+    }
   };
 
   // 1. Minimum preloader typewriter display threshold
@@ -319,7 +329,7 @@ function App() {
   }, [currentPath, showPreloader]);
 
   useEffect(() => {
-    if (showPreloader || isTransitioning || wineCardOpen || breakfastOpen) {
+    if (showPreloader || isTransitioning || wineCardOpen || breakfastOpen || mobileMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -327,7 +337,7 @@ function App() {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [showPreloader, isTransitioning, wineCardOpen, breakfastOpen]);
+  }, [showPreloader, isTransitioning, wineCardOpen, breakfastOpen, mobileMenuOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -417,6 +427,58 @@ function App() {
     }
   };
 
+  const mobileMenuVariants = {
+    hidden: { 
+      opacity: 0,
+      y: '-100%' 
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.45, 
+        ease: [0.16, 1, 0.3, 1],
+        when: "beforeChildren",
+        staggerChildren: 0.07
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      y: '-100%',
+      transition: { 
+        duration: 0.4, 
+        ease: [0.16, 1, 0.3, 1],
+        when: "afterChildren",
+        staggerChildren: 0.05,
+        staggerDirection: -1
+      }
+    }
+  };
+
+  const mobileMenuItemVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: 20 
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      transition: { 
+        type: 'spring', 
+        stiffness: 300, 
+        damping: 24 
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      y: -15, 
+      transition: { 
+        duration: 0.22, 
+        ease: 'easeIn' 
+      }
+    }
+  };
+
   // Arch Data (mock vertical videos for lightbox)
   const archesData = [
     {
@@ -494,7 +556,7 @@ function App() {
       <div className="sidebar-wrapper">
         <div className="sidebar-sticky-container">
           <motion.nav 
-            className={`navbar ${isScrolled || mobileMenuOpen ? 'navbar-scrolled' : 'navbar-transparent'}`}
+            className={`navbar ${isScrolled || mobileMenuOpen ? 'navbar-scrolled' : 'navbar-transparent'} ${mobileMenuOpen ? 'mobile-menu-active' : ''}`}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -576,45 +638,23 @@ function App() {
         {mobileMenuOpen && (
           <motion.div 
             className="mobile-menu-drawer"
-            initial={{ opacity: 0, y: '-100%' }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: '-100%' }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            variants={mobileMenuVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
           >
-            <motion.div 
-              className="mobile-nav-links"
-              initial="hidden"
-              animate="visible"
-              variants={staggerContainer}
-            >
+            <div className="mobile-nav-links">
               {[
                 { id: 'menu', num: '01', text: 'Меню', target: '/menu' },
                 { id: 'breakfast', num: '02', text: 'Завтраки', target: '/#breakfast' },
                 { id: 'wine', num: '03', text: 'Винная карта', target: '/#wine' },
                 { id: 'about', num: '04', text: 'О нас', target: '/about' },
-                { id: 'contacts', num: '05', text: 'Контакты', target: '/#contacts' },
-                { id: 'delivery', num: '06', text: 'Доставка', target: 'https://eda.yandex.ru/r/sisi_bistr?placeSlug=sisi_bistr', isExternal: true }
+                { id: 'contacts', num: '05', text: 'Контакты', target: '/#contacts' }
               ].map((item) => {
                 const isActive = item.id === 'menu' 
                   ? currentPath === '/menu' 
                   : (item.id === 'about' ? currentPath === '/about' : (activeSection === item.id && currentPath !== '/menu' && currentPath !== '/about'));
                 
-                if (item.isExternal) {
-                  return (
-                    <motion.a 
-                      key={item.id}
-                      href={item.target}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mobile-nav-link mobile-nav-link-delivery"
-                      variants={fadeInUp}
-                    >
-                      <img src="/yandex_food_logo_transparent.webp" className="mobile-nav-link-yandex-logo" alt="Yandex.Eda" />
-                      <span>{item.text}</span>
-                    </motion.a>
-                  );
-                }
-
                 return (
                   <motion.a 
                     key={item.id}
@@ -625,35 +665,50 @@ function App() {
                         setMobileMenuOpen(false);
                         setTimeout(() => {
                           setWineCardOpen(true);
-                        }, 300);
+                        }, 450);
                       } else if (item.id === 'breakfast') {
                         e.preventDefault();
                         setMobileMenuOpen(false);
                         setTimeout(() => {
                           setBreakfastOpen(true);
-                        }, 300);
+                        }, 450);
                       } else {
                         handleNavClick(e, item.target);
                       }
                     }}
                     className={`mobile-nav-link ${isActive ? 'active' : ''}`}
-                    variants={fadeInUp}
+                    variants={mobileMenuItemVariants}
                   >
                     <span className="mobile-nav-link-num">{item.num}</span>
                     <span>{item.text}</span>
                   </motion.a>
                 );
               })}
-              
+            </div>
+
+            <div className="mobile-drawer-footer">
               <motion.button 
-                className="btn btn-dark" 
-                onClick={() => { setMobileMenuOpen(false); setBookingOpen(true); }}
-                style={{ width: '100%', marginTop: '20px' }}
-                variants={fadeInUp}
+                className="btn btn-dark mobile-drawer-cta" 
+                onClick={() => { 
+                  setMobileMenuOpen(false); 
+                  setTimeout(() => {
+                    setBookingOpen(true);
+                  }, 450); 
+                }}
+                variants={mobileMenuItemVariants}
               >
                 Забронировать стол
               </motion.button>
-            </motion.div>
+              
+              <motion.div className="mobile-drawer-logo-wrap" variants={mobileMenuItemVariants}>
+                <img src="/cafe_sisi_logo_transparent.svg" className="mobile-drawer-logo" alt="Cafe Sisi Italy Logo" />
+              </motion.div>
+              
+              <motion.div className="mobile-drawer-contacts" variants={mobileMenuItemVariants}>
+                <p className="mobile-contact-address">Темерницкая ул., 55</p>
+                <p className="mobile-contact-phone">+7 (961) 436-56-80</p>
+              </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1068,15 +1123,17 @@ function App() {
             
             <div className="hero-mobile-overlay" />
             
-            {/* Top Logo */}
-            <motion.div 
-              className="hero-mobile-logo-container"
-              initial={{ opacity: 0, y: -15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.2, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <img src="/cafe_sisi_logo_transparent.svg" className="hero-mobile-logo" alt="Cafe Sisi Italy Logo" />
-            </motion.div>
+            {/* Centered Logo */}
+            <div className="hero-mobile-logo-container">
+              <motion.img 
+                src="/cafe_sisi_logo_transparent.svg" 
+                className="hero-mobile-logo" 
+                alt="Cafe Sisi Italy Logo"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1.2, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              />
+            </div>
 
             {/* Bottom Content Wrapper */}
             <motion.div 
