@@ -4,7 +4,7 @@ import {
   MapPin, 
   Phone, 
   Clock, 
-  Menu as MenuIcon, 
+  Plus, 
   X, 
   ChevronRight, 
   Play, 
@@ -625,7 +625,7 @@ function App() {
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   aria-label="Toggle menu"
                 >
-                  {mobileMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
+                  {mobileMenuOpen ? <X size={24} /> : <Plus size={24} />}
                 </button>
               </div>
             </div>
