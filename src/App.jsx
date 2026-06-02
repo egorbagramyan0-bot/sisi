@@ -1155,7 +1155,6 @@ function App() {
             >
               <span className="hero-mobile-cursive">Da Sisi con amore</span>
               <h1 className="hero-mobile-title">Маленькая Италия<br />в центре города</h1>
-              <p className="hero-mobile-subtitle">Уютные завтраки, свежая паста и неспешные вечера</p>
               
               <button className="btn hero-mobile-cta" onClick={() => setBookingOpen(true)}>
                 ЗАБРОНИРОВАТЬ СТОЛ
