@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
-const WineCardModal = ({ isOpen, onClose, imageSrc = "/vinecard.png", altText = "Винная карта Cafe Sisi" }) => {
+const WineCardModal = ({ isOpen, onClose, imageSrc = "/vinecard.webp", altText = "Винная карта Cafe Sisi" }) => {
   const previousFocusRef = useRef(null);
   const closeButtonRef = useRef(null);
   const scrollContainerRef = useRef(null);

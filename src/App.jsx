@@ -422,21 +422,21 @@ function App() {
     {
       title: 'Свежая Паста',
       desc: 'Наш шеф-повар натирает свежий летний трюфель на домашнюю пасту тальятелле, приготовленную вручную этим утром.',
-      img: '/pasta_truffle.png',
+      img: '/pasta_truffle.webp',
       time: '9:16',
       videoUrl: '#'
     },
     {
       title: 'Винная Культура',
       desc: 'Идеальный бокал тосканского Кьянти Классико раскрывает свой букет в лучах вечернего солнца.',
-      img: '/wine_pour.png',
+      img: '/wine_pour.webp',
       time: '9:16',
       videoUrl: '#'
     },
     {
       title: 'Интерьер & Уют',
       desc: 'Свет свечей, мягкие тени и аромат свежевыпеченной фокаччи — атмосфера настоящего итальянского дома.',
-      img: '/cozy_interior.png',
+      img: '/cozy_interior.webp',
       time: '9:16',
       videoUrl: '#'
     }
@@ -542,7 +542,7 @@ function App() {
                   rel="noreferrer" 
                   className="nav-link nav-link-delivery"
                 >
-                  <img src="/yandex_food_logo_transparent.png" className="nav-link-yandex-logo" alt="Yandex.Eda" />
+                  <img src="/yandex_food_logo_transparent.webp" className="nav-link-yandex-logo" alt="Yandex.Eda" />
                   <span className="nav-link-text-wrapper">
                     <span className="nav-link-text" data-text="Доставка">Доставка</span>
                   </span>
@@ -609,7 +609,7 @@ function App() {
                       className="mobile-nav-link mobile-nav-link-delivery"
                       variants={fadeInUp}
                     >
-                      <img src="/yandex_food_logo_transparent.png" className="mobile-nav-link-yandex-logo" alt="Yandex.Eda" />
+                      <img src="/yandex_food_logo_transparent.webp" className="mobile-nav-link-yandex-logo" alt="Yandex.Eda" />
                       <span>{item.text}</span>
                     </motion.a>
                   );
@@ -1045,7 +1045,7 @@ function App() {
                 ))}
 
                 {/* The main Cafe Sisi facade image */}
-                <img src="/hero3.png" className="facade-bg" alt="Cafe Sisi building facade" />
+                <img src="/hero3.webp" className="facade-bg" alt="Cafe Sisi building facade" />
 
                 {/* View Menu Button aligned under the wall text */}
                 <div className="facade-button-slot">
@@ -1297,7 +1297,7 @@ function App() {
                   viewport={{ once: true, margin: "-100px" }}
                   transition={{ duration: 1 }}
                 >
-                  <img src="/landing_background_x2.jpg" className="about-photo" alt="Интерьер траттории" />
+                  <img src="/landing_background_x2.webp" className="about-photo" alt="Интерьер траттории" />
                 </motion.div>
               </div>
             </section>
@@ -1401,14 +1401,14 @@ function App() {
       <WineCardModal 
         isOpen={wineCardOpen} 
         onClose={() => setWineCardOpen(false)} 
-        imageSrc="/vinecard.png"
+        imageSrc="/vinecard.webp"
         altText="Винная карта Cafe Sisi"
       />
 
       <WineCardModal 
         isOpen={breakfastOpen} 
         onClose={() => setBreakfastOpen(false)} 
-        imageSrc="/break.png"
+        imageSrc="/break.webp"
         altText="Меню завтраков Cafe Sisi"
       />
 
