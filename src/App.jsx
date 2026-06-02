@@ -4,7 +4,6 @@ import {
   MapPin, 
   Phone, 
   Clock, 
-  Plus, 
   X, 
   ChevronRight, 
   Play, 
@@ -13,6 +12,7 @@ import {
 } from 'lucide-react';
 import BookingModal from './BookingModal';
 import WineCardModal from './WineCardModal';
+import MobileMenu from './MobileMenu';
 import { LOGO_PATHS } from './LogoPaths';
 import { MENU_DATA } from './MenuData';
 import { RESTAURANT_INFO } from './RestaurantInfo';
@@ -435,57 +435,7 @@ function App() {
     }
   };
 
-  const mobileMenuVariants = {
-    hidden: { 
-      opacity: 0,
-      y: '-100%' 
-    },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { 
-        duration: 0.45, 
-        ease: [0.16, 1, 0.3, 1],
-        when: "beforeChildren",
-        staggerChildren: 0.07
-      }
-    },
-    exit: { 
-      opacity: 0, 
-      y: '-100%',
-      transition: { 
-        duration: 0.4, 
-        ease: [0.16, 1, 0.3, 1],
-        when: "afterChildren",
-        staggerChildren: 0.05,
-        staggerDirection: -1
-      }
-    }
-  };
 
-  const mobileMenuItemVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 20 
-    },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { 
-        type: 'spring', 
-        stiffness: 300, 
-        damping: 24 
-      }
-    },
-    exit: { 
-      opacity: 0, 
-      y: -15, 
-      transition: { 
-        duration: 0.22, 
-        ease: 'easeIn' 
-      }
-    }
-  };
 
   // Arch Data (mock vertical videos for lightbox)
   const archesData = [
@@ -627,99 +577,25 @@ function App() {
                   Забронировать стол
                 </button>
                 
-                {/* Mobile Menu Toggle */}
-                <button 
-                  className="mobile-toggle"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  aria-label="Toggle menu"
-                >
-                  {mobileMenuOpen ? <X size={24} /> : <Plus size={24} />}
-                </button>
+                {/* Mobile Menu Toggle (Staggered Menu) */}
+                <MobileMenu
+                  currentPath={currentPath}
+                  activeSection={activeSection}
+                  onNavigate={handleNavClick}
+                  onOpenModal={(modalName) => {
+                    if (modalName === 'breakfast') setBreakfastOpen(true);
+                    if (modalName === 'wine') setWineCardOpen(true);
+                    if (modalName === 'booking') setBookingOpen(true);
+                  }}
+                  onMenuOpen={() => setMobileMenuOpen(true)}
+                  onMenuClose={() => setMobileMenuOpen(false)}
+                />
               </div>
             </div>
           </motion.nav>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div 
-            className="mobile-menu-drawer"
-            variants={mobileMenuVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            <div className="mobile-nav-links">
-              {[
-                { id: 'menu', num: '01', text: 'Меню', target: '/menu' },
-                { id: 'breakfast', num: '02', text: 'Завтраки', target: '/#breakfast' },
-                { id: 'wine', num: '03', text: 'Винная карта', target: '/#wine' },
-                { id: 'about', num: '04', text: 'О нас', target: '/about' },
-                { id: 'contacts', num: '05', text: 'Контакты', target: '/#contacts' }
-              ].map((item) => {
-                const isActive = item.id === 'menu' 
-                  ? currentPath === '/menu' 
-                  : (item.id === 'about' ? currentPath === '/about' : (activeSection === item.id && currentPath !== '/menu' && currentPath !== '/about'));
-                
-                return (
-                  <motion.a 
-                    key={item.id}
-                    href={item.target}
-                    onClick={(e) => {
-                      if (item.id === 'wine') {
-                        e.preventDefault();
-                        setMobileMenuOpen(false);
-                        setTimeout(() => {
-                          setWineCardOpen(true);
-                        }, 450);
-                      } else if (item.id === 'breakfast') {
-                        e.preventDefault();
-                        setMobileMenuOpen(false);
-                        setTimeout(() => {
-                          setBreakfastOpen(true);
-                        }, 450);
-                      } else {
-                        handleNavClick(e, item.target);
-                      }
-                    }}
-                    className={`mobile-nav-link ${isActive ? 'active' : ''}`}
-                    variants={mobileMenuItemVariants}
-                  >
-                    <span className="mobile-nav-link-num">{item.num}</span>
-                    <span>{item.text}</span>
-                  </motion.a>
-                );
-              })}
-            </div>
-
-            <div className="mobile-drawer-footer">
-              <motion.button 
-                className="btn btn-dark mobile-drawer-cta" 
-                onClick={() => { 
-                  setMobileMenuOpen(false); 
-                  setTimeout(() => {
-                    setBookingOpen(true);
-                  }, 450); 
-                }}
-                variants={mobileMenuItemVariants}
-              >
-                Забронировать стол
-              </motion.button>
-              
-              <motion.div className="mobile-drawer-logo-wrap" variants={mobileMenuItemVariants}>
-                <img src="/cafe_sisi_logo_transparent.svg" className="mobile-drawer-logo" alt="Cafe Sisi Italy Logo" />
-              </motion.div>
-              
-              <motion.div className="mobile-drawer-contacts" variants={mobileMenuItemVariants}>
-                <p className="mobile-contact-address">Темерницкая ул., 55</p>
-                <p className="mobile-contact-phone">+7 (961) 436-56-80</p>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {currentPath === '/menu' ? (
         <div className="main-content-layout">
