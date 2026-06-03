@@ -521,6 +521,30 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Lock mobile hero height to prevent layout jumps/zoom on scroll
+  useEffect(() => {
+    let lastWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
+    const adjustHeroHeight = () => {
+      if (typeof window === 'undefined' || window.innerWidth > 768) return;
+      const hero = document.querySelector('.hero-mobile-section');
+      if (hero) {
+        hero.style.height = `${window.innerHeight}px`;
+      }
+    };
+
+    adjustHeroHeight();
+
+    const handleResize = () => {
+      if (typeof window !== 'undefined' && window.innerWidth !== lastWidth) {
+        lastWidth = window.innerWidth;
+        adjustHeroHeight();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [currentPath]);
+
   const handleNavClick = (e, target) => {
     if (e) e.preventDefault();
     
