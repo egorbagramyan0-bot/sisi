@@ -4113,6 +4113,146 @@ section[id] {
   border: 0 !important;
 }
 
+/* ==========================================================================
+   Interactive Pasta Field
+   ========================================================================== */
+
+.interactive-pasta-field {
+  position: relative;
+  width: min(100%, 540px);
+  height: 460px;
+  margin: 0 auto;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.interactive-pasta-item {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  display: block;
+  user-select: none;
+  touch-action: none;
+  cursor: grab;
+  will-change: transform;
+  filter: drop-shadow(0 5px 8px rgba(119, 79, 25, 0.08));
+  transition: filter 180ms ease;
+}
+
+.interactive-pasta-item svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none; /* SVG doesn't intercept clicks/drags */
+}
+
+.interactive-pasta-item:hover {
+  filter: drop-shadow(0 8px 12px rgba(119, 79, 25, 0.14));
+}
+
+.interactive-pasta-item:active {
+  cursor: grabbing;
+}
+
+.interactive-pasta-menu-link {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 5;
+  display: block;
+  width: 230px;
+  height: 230px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.interactive-pasta-ring {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.interactive-pasta-ring-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  animation: pasta-ring-spin 26s linear infinite;
+  will-change: transform;
+}
+
+.interactive-pasta-ring-label {
+  position: relative;
+  z-index: 2;
+  color: var(--text-dark);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-align: center;
+  transition:
+    color 220ms ease,
+    opacity 220ms ease;
+}
+
+.interactive-pasta-menu-link:hover .interactive-pasta-ring-image {
+  animation-duration: 17s;
+}
+
+.interactive-pasta-menu-link:hover .interactive-pasta-ring-label {
+  color: var(--accent-terracotta);
+  opacity: 1;
+}
+
+@keyframes pasta-ring-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1024px) {
+  .interactive-pasta-field {
+    pointer-events: none;
+    height: 400px; /* match mobile vertical spacing height */
+  }
+
+  .interactive-pasta-item {
+    pointer-events: none;
+    display: none; /* hide floating drag shapes on mobile to keep mobile layout clean */
+  }
+
+  .interactive-pasta-menu-link {
+    pointer-events: auto; /* enable click on the central button for mobile */
+  }
+}
+
+@media (min-width: 1025px) {
+  .kitchen-visuals {
+    height: 460px; /* match the height of physics field on desktop */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interactive-pasta-ring-image {
+    animation: none;
+  }
+
+  .interactive-pasta-item {
+    transition: none;
+  }
+}
+
 
 
 

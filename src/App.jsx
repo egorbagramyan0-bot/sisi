@@ -89,6 +89,276 @@ const AboutImage = ({ src, alt, className, label }) => {
   );
 };
 
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const pastaItems = [
+  {
+    id: "farfalle",
+    Component: FarfallePasta,
+    size: 54,
+    startX: 110,
+    startY: 40,
+    initialVX: 0.16,
+    initialVY: 0.11,
+    rotationSpeed: 0.035,
+  },
+  {
+    id: "wheel",
+    Component: RotellePasta,
+    size: 56,
+    startX: 320,
+    startY: 70,
+    initialVX: -0.12,
+    initialVY: 0.14,
+    rotationSpeed: -0.03,
+  },
+  {
+    id: "ravioli",
+    Component: RavioliPasta,
+    size: 58,
+    startX: 95,
+    startY: 330,
+    initialVX: 0.14,
+    initialVY: -0.1,
+    rotationSpeed: 0.025,
+  },
+  {
+    id: "rigatoni",
+    Component: PennePasta,
+    size: 62,
+    startX: 330,
+    startY: 290,
+    initialVX: -0.13,
+    initialVY: -0.12,
+    rotationSpeed: -0.028,
+  },
+];
+
+export function InteractivePastaField({ onNavigate }) {
+  const fieldRef = useRef(null);
+  const itemRefs = useRef(new Map());
+  const stateRef = useRef(new Map());
+  const frameRef = useRef(null);
+  const lastFrameRef = useRef(performance.now());
+
+  useEffect(() => {
+    pastaItems.forEach((item) => {
+      stateRef.current.set(item.id, {
+        x: item.startX,
+        y: item.startY,
+        vx: item.initialVX,
+        vy: item.initialVY,
+        rotation: 0,
+        rotationSpeed: item.rotationSpeed,
+        dragging: false,
+        pointerId: null,
+        previousPointerX: 0,
+        previousPointerY: 0,
+        previousPointerTime: 0,
+        dragVX: 0,
+        dragVY: 0,
+      });
+    });
+
+    const animate = (time) => {
+      const field = fieldRef.current;
+      if (!field) return;
+
+      const rect = field.getBoundingClientRect();
+      const delta = Math.min((time - lastFrameRef.current) / 16.67, 2);
+      lastFrameRef.current = time;
+
+      pastaItems.forEach((item) => {
+        const state = stateRef.current.get(item.id);
+        const el = itemRefs.current.get(item.id);
+
+        if (!state || !el) return;
+
+        if (!state.dragging) {
+          const ambientStrength = 0.0025;
+
+          state.vx += Math.sin(time * 0.0007 + item.startX) * ambientStrength;
+          state.vy += Math.cos(time * 0.0008 + item.startY) * ambientStrength;
+
+          state.x += state.vx * delta;
+          state.y += state.vy * delta;
+
+          state.rotation += state.rotationSpeed * delta;
+
+          const maxX = rect.width - item.size;
+          const maxY = rect.height - item.size;
+
+          if (state.x <= 0) {
+            state.x = 0;
+            state.vx = Math.abs(state.vx) * 0.78;
+          }
+
+          if (state.x >= maxX) {
+            state.x = maxX;
+            state.vx = -Math.abs(state.vx) * 0.78;
+          }
+
+          if (state.y <= 0) {
+            state.y = 0;
+            state.vy = Math.abs(state.vy) * 0.78;
+          }
+
+          if (state.y >= maxY) {
+            state.y = maxY;
+            state.vy = -Math.abs(state.vy) * 0.78;
+          }
+
+          const friction = 0.994;
+          state.vx *= friction;
+          state.vy *= friction;
+
+          const minAmbientSpeed = 0.055;
+
+          if (Math.abs(state.vx) < minAmbientSpeed) {
+            state.vx += item.initialVX * 0.006;
+          }
+
+          if (Math.abs(state.vy) < minAmbientSpeed) {
+            state.vy += item.initialVY * 0.006;
+          }
+
+          const maxVelocity = 8;
+          state.vx = clamp(state.vx, -maxVelocity, maxVelocity);
+          state.vy = clamp(state.vy, -maxVelocity, maxVelocity);
+        }
+
+        el.style.transform = `
+          translate3d(${state.x}px, ${state.y}px, 0)
+          rotate(${state.rotation}deg)
+        `;
+      });
+
+      frameRef.current = requestAnimationFrame(animate);
+    };
+
+    frameRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, []);
+
+  const handlePointerDown = (event, item) => {
+    const field = fieldRef.current;
+    const el = itemRefs.current.get(item.id);
+    const state = stateRef.current.get(item.id);
+
+    if (!field || !el || !state) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    el.setPointerCapture(event.pointerId);
+
+    state.dragging = true;
+    state.pointerId = event.pointerId;
+    state.previousPointerX = event.clientX;
+    state.previousPointerY = event.clientY;
+    state.previousPointerTime = performance.now();
+    state.dragVX = 0;
+    state.dragVY = 0;
+  };
+
+  const handlePointerMove = (event, item) => {
+    const field = fieldRef.current;
+    const state = stateRef.current.get(item.id);
+
+    if (!field || !state || !state.dragging) return;
+
+    const now = performance.now();
+    const deltaTime = Math.max(now - state.previousPointerTime, 1);
+    const dx = event.clientX - state.previousPointerX;
+    const dy = event.clientY - state.previousPointerY;
+
+    const rect = field.getBoundingClientRect();
+    const maxX = rect.width - item.size;
+    const maxY = rect.height - item.size;
+
+    state.x = clamp(state.x + dx, 0, maxX);
+    state.y = clamp(state.y + dy, 0, maxY);
+
+    const velocityMultiplier = 16.67 / deltaTime;
+
+    state.dragVX = dx * velocityMultiplier;
+    state.dragVY = dy * velocityMultiplier;
+
+    state.previousPointerX = event.clientX;
+    state.previousPointerY = event.clientY;
+    state.previousPointerTime = now;
+  };
+
+  const handlePointerUp = (event, item) => {
+    const el = itemRefs.current.get(item.id);
+    const state = stateRef.current.get(item.id);
+
+    if (!el || !state) return;
+
+    if (el.hasPointerCapture(event.pointerId)) {
+      el.releasePointerCapture(event.pointerId);
+    }
+
+    state.dragging = false;
+    state.pointerId = null;
+
+    const maxThrowVelocity = 7;
+
+    state.vx = clamp(state.dragVX, -maxThrowVelocity, maxThrowVelocity);
+    state.vy = clamp(state.dragVY, -maxThrowVelocity, maxThrowVelocity);
+  };
+
+  return (
+    <div ref={fieldRef} className="interactive-pasta-field">
+      {pastaItems.map((item) => {
+        const PastaComponent = item.Component;
+        return (
+          <div
+            key={item.id}
+            ref={(node) => {
+              if (node) itemRefs.current.set(item.id, node);
+            }}
+            draggable="false"
+            className="interactive-pasta-item"
+            style={{
+              width: `${item.size}px`,
+              height: `${item.size}px`,
+            }}
+            onPointerDown={(event) => handlePointerDown(event, item)}
+            onPointerMove={(event) => handlePointerMove(event, item)}
+            onPointerUp={(event) => handlePointerUp(event, item)}
+            onPointerCancel={(event) => handlePointerUp(event, item)}
+          >
+            <PastaComponent width={item.size} height={item.size} />
+          </div>
+        );
+      })}
+
+      <a 
+        href="/menu" 
+        onClick={(e) => onNavigate(e, '/menu')} 
+        className="interactive-pasta-menu-link"
+      >
+        <span className="interactive-pasta-ring">
+          <img
+            src="/cafe_sisi_spaghetti_ring.svg"
+            alt=""
+            aria-hidden="true"
+            draggable="false"
+            className="interactive-pasta-ring-image"
+          />
+          <span className="interactive-pasta-ring-label">СМОТРЕТЬ МЕНЮ</span>
+        </span>
+      </a>
+    </div>
+  );
+}
+
 function App() {
   const [showPreloader, setShowPreloader] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -1145,20 +1415,6 @@ function App() {
             <section id="menu" style={{ backgroundColor: 'var(--bg-secondary)', overflow: 'hidden' }}>
               <div className="section kitchen-grid" style={{ position: 'relative' }}>
                 
-                {/* Parallax Floating Pasta Shapes */}
-                <motion.div style={{ y: yPasta1, position: 'absolute', top: '10%', left: '42%' }} className="animate-float-1">
-                  <FarfallePasta width={48} height={38} />
-                </motion.div>
-                <motion.div style={{ y: yPasta2, position: 'absolute', bottom: '15%', left: '38%' }} className="animate-float-3">
-                  <RavioliPasta width={45} height={45} />
-                </motion.div>
-                <motion.div style={{ y: yPasta3, position: 'absolute', top: '15%', right: '40%' }} className="animate-float-2">
-                  <RotellePasta width={44} height={44} />
-                </motion.div>
-                <motion.div style={{ y: yPasta4, position: 'absolute', bottom: '25%', right: '45%' }} className="animate-float-4">
-                  <PennePasta width={55} height={24} />
-                </motion.div>
-                
                 {/* Info Side */}
                 <motion.div 
                   className="kitchen-info"
@@ -1177,32 +1433,7 @@ function App() {
                 {/* Center Space for floating elements (Responsive visual spacer) */}
                 {/* Center Space: Rotating Spaghetti Ring Link to Menu */}
                 <div className="kitchen-visuals">
-                  <div 
-                    className="spaghetti-ring-container"
-                    onMouseEnter={() => { isRingHovered.current = true; }}
-                    onMouseLeave={() => { isRingHovered.current = false; }}
-                  >
-                    {/* Rotating Ring */}
-                    <div className="spaghetti-ring-wrapper">
-                      <img 
-                        ref={spaghettiRingRef}
-                        src="/cafe_sisi_spaghetti_ring.svg" 
-                        className="spaghetti-ring-image" 
-                        alt="Cafe Sisi Spaghetti Ring" 
-                      />
-                    </div>
-                    
-                    {/* Static Center Button */}
-                    <div className="spaghetti-ring-center">
-                      <a 
-                        href="/menu" 
-                        onClick={(e) => handleNavClick(e, '/menu')} 
-                        className="spaghetti-ring-btn"
-                      >
-                        СМОТРЕТЬ МЕНЮ
-                      </a>
-                    </div>
-                  </div>
+                  <InteractivePastaField onNavigate={handleNavClick} />
                 </div>
 
                 {/* Bullets Side */}
