@@ -4227,6 +4227,15 @@ section[id] {
   .kitchen-visuals {
     height: 460px; /* match the height of physics field on desktop */
   }
+
+  .interactive-pasta-ring-image {
+    left: -35px;
+    top: -35px;
+    right: auto;
+    bottom: auto;
+    width: 300px;
+    height: 300px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
