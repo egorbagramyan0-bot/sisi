@@ -480,8 +480,9 @@ section[id] {
     gap: 18px;
   }
 
-  .mobile-toggle {
-    display: none;
+  .mobile-toggle,
+  .staggered-menu-wrapper {
+    display: none !important;
   }
 
   .nav-action-wrapper {
