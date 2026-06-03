@@ -103,6 +103,9 @@ function App() {
     return '/';
   });
   const [activeMenuCategory, setActiveMenuCategory] = useState('snacks');
+  const [navbarHeight, setNavbarHeight] = useState(58);
+  const [categoriesBarHeight, setCategoriesBarHeight] = useState(65);
+  const [indicatorStyle, setIndicatorStyle] = useState({ transform: 'translate3d(0px, 0px, 0)', width: '0px', height: '0px', opacity: 0 });
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [wineCardOpen, setWineCardOpen] = useState(false);
@@ -140,6 +143,10 @@ function App() {
 
   const spaghettiRingRef = useRef(null);
   const isRingHovered = useRef(false);
+  const categoriesBarRef = useRef(null);
+  const categoriesBarWrapperRef = useRef(null);
+  const isScrollingRef = useRef(false);
+  const scrollTimeoutRef = useRef(null);
 
   // Smooth continuous rotation loop for Spaghetti Ring visual with speed transitions
   useEffect(() => {
@@ -343,6 +350,20 @@ function App() {
 
   useEffect(() => {
     const handleScroll = () => {
+      // update heights dynamically
+      const navbar = document.querySelector('.navbar');
+      let currentNavbarHeight = 0;
+      if (window.innerWidth <= 950 && navbar) {
+        currentNavbarHeight = navbar.getBoundingClientRect().bottom;
+      }
+      setNavbarHeight(currentNavbarHeight);
+
+      let currentBarHeight = 65;
+      if (categoriesBarWrapperRef.current) {
+        currentBarHeight = categoriesBarWrapperRef.current.offsetHeight;
+        setCategoriesBarHeight(currentBarHeight);
+      }
+
       if (window.scrollY > 50) {
         setIsScrolled(true);
       } else {
@@ -356,15 +377,16 @@ function App() {
       }
 
       if (currentPath === '/menu') {
+        if (isScrollingRef.current) return;
         const categories = ['snacks', 'salads', 'soups', 'pasta', 'pizza', 'main-dishes', 'desserts', 'ice-cream'];
         let currentCat = 'snacks';
+        const offset = currentNavbarHeight + currentBarHeight;
         for (const catId of categories) {
           const el = document.getElementById(catId);
           if (el) {
             const top = el.offsetTop;
             const height = el.offsetHeight;
-            // category bar is sticky, scroll offset can be ~180px
-            if (window.scrollY >= top - 190 && window.scrollY < top + height - 190) {
+            if (window.scrollY >= top - offset - 10 && window.scrollY < top + height - offset - 10) {
               currentCat = catId;
               break;
             }
@@ -395,16 +417,74 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [currentPath]);
 
+  // Track active indicator position and size dynamically via ResizeObserver
+  useEffect(() => {
+    if (currentPath !== '/menu') return;
+
+    const container = categoriesBarRef.current;
+    if (!container) return;
+
+    const updateIndicator = () => {
+      if (window.innerWidth > 950) {
+        setIndicatorStyle({ opacity: 0, display: 'none' });
+        return;
+      }
+
+      const activePill = container.querySelector('.category-pill.active');
+      if (activePill) {
+        const left = activePill.offsetLeft;
+        const width = activePill.offsetWidth;
+        const height = activePill.offsetHeight;
+        const top = activePill.offsetTop;
+
+        setIndicatorStyle((prev) => {
+          const isFirst = !prev.width || prev.width === '0px';
+          return {
+            transform: `translate3d(${left}px, ${top}px, 0)`,
+            width: `${width}px`,
+            height: `${height}px`,
+            opacity: 1,
+            transition: isFirst 
+              ? 'none' 
+              : 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          };
+        });
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateIndicator();
+    });
+    resizeObserver.observe(container);
+
+    updateIndicator();
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [activeMenuCategory, currentPath]);
+
   // Auto-scroll horizontal categories bar to center the active category pill on mobile
   useEffect(() => {
     if (currentPath === '/menu') {
-      const activePill = document.querySelector('.menu-categories-bar .category-pill.active');
-      if (activePill) {
-        activePill.scrollIntoView({
-          behavior: 'smooth',
-          inline: 'center',
-          block: 'nearest'
-        });
+      if (window.innerWidth > 950) return;
+      const container = categoriesBarRef.current;
+      const activePill = container?.querySelector('.category-pill.active');
+      if (container && activePill) {
+        const containerWidth = container.clientWidth;
+        const scrollLeft = container.scrollLeft;
+        const pillLeft = activePill.offsetLeft;
+        const pillWidth = activePill.clientWidth;
+        
+        const isVisible = (pillLeft >= scrollLeft + 20) && ((pillLeft + pillWidth) <= scrollLeft + containerWidth - 20);
+        
+        if (!isVisible) {
+          const targetScrollLeft = pillLeft - (containerWidth / 2) + (pillWidth / 2);
+          container.scrollTo({
+            left: targetScrollLeft,
+            behavior: 'smooth'
+          });
+        }
       }
     }
   }, [activeMenuCategory, currentPath]);
@@ -613,98 +693,119 @@ function App() {
               </div>
             </header>
 
-            {/* Sticky categories filter bar */}
-            <div className="menu-categories-bar-wrapper">
-              <div className="menu-categories-bar">
+            {/* Wrapper container to restrict sticky behavior on mobile/tablet */}
+            <div className="menu-sections-wrapper">
+              {/* Sticky categories filter bar */}
+              <div 
+                ref={categoriesBarWrapperRef}
+                className="menu-categories-bar-wrapper"
+                style={{ top: `${navbarHeight}px` }}
+              >
+                <div ref={categoriesBarRef} className="menu-categories-bar">
+                  {/* Single active indicator for mobile */}
+                  <div className="category-active-indicator" style={indicatorStyle} />
+
+                  {MENU_DATA.map((category) => (
+                    <button
+                      key={category.id}
+                      className={`category-pill ${activeMenuCategory === category.id ? 'active' : ''}`}
+                      onClick={() => {
+                        const el = document.getElementById(category.id);
+                        if (el) {
+                          const offset = navbarHeight + categoriesBarHeight;
+                          const topOffset = el.offsetTop - offset;
+                          
+                          isScrollingRef.current = true;
+                          setActiveMenuCategory(category.id);
+                          
+                          if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+                          
+                          window.scrollTo({ top: topOffset, behavior: 'smooth' });
+                          
+                          scrollTimeoutRef.current = setTimeout(() => {
+                            isScrollingRef.current = false;
+                          }, 800);
+                        }
+                      }}
+                    >
+                      {category.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Menu List of items */}
+              <div className="menu-list-container">
                 {MENU_DATA.map((category) => (
-                  <button
-                    key={category.id}
-                    className={`category-pill ${activeMenuCategory === category.id ? 'active' : ''}`}
-                    onClick={() => {
-                      const el = document.getElementById(category.id);
-                      if (el) {
-                        const topOffset = el.offsetTop - 170; // account for sticky categories bar
-                        window.scrollTo({ top: topOffset, behavior: 'smooth' });
-                      }
-                    }}
-                  >
-                    {category.title}
-                  </button>
+                  <section key={category.id} id={category.id} className="menu-category-section">
+                    <div className="menu-category-header">
+                      <h2 className="font-display menu-category-title">
+                        <span className="category-marker" style={{ backgroundColor: category.color }} />
+                        {category.title}
+                      </h2>
+                      <div className="category-line" />
+                    </div>
+
+                    <div className="menu-items-grid">
+                      {category.items.map((item) => {
+                        if (item.visible === false) return null;
+                        return (
+                          <div key={item.id} className="menu-card">
+                            {/* Image Wrapper */}
+                            <div className="menu-card-image-wrapper">
+                              {item.image ? (
+                                <img 
+                                  src={item.image} 
+                                  alt={item.name} 
+                                  className="menu-card-image"
+                                  loading="lazy" 
+                                />
+                              ) : (
+                                <div className="menu-card-placeholder">
+                                  <div className="placeholder-decor">
+                                    {category.id === 'pasta' && <FarfallePasta width={32} height={25} />}
+                                    {category.id === 'pizza' && <RotellePasta width={32} height={32} />}
+                                    {category.id === 'desserts' && <TerracottaHeart width={28} height={28} />}
+                                    {category.id === 'salads' && <OliveBranch width={30} height={30} />}
+                                    {category.id === 'snacks' && <OliveBranch width={30} height={30} />}
+                                    {category.id === 'soups' && <RavioliPasta width={32} height={32} />}
+                                    {category.id === 'main-dishes' && <PennePasta width={36} height={16} />}
+                                    {category.id === 'ice-cream' && <RotellePasta width={30} height={30} />}
+                                  </div>
+                                  <span className="placeholder-text">Фото блюда</span>
+                                </div>
+                              )}
+                              
+                              {/* Status Tag */}
+                              {item.status && (
+                                <span className={`menu-card-status status-${item.status}`}>
+                                  {item.status === 'hit' && 'Хит'}
+                                  {item.status === 'new' && 'Новинка'}
+                                  {item.status === 'unavailable' && 'Недоступно'}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Content Details */}
+                            <div className="menu-card-content">
+                              <div className="menu-card-title-row">
+                                <h4 className="menu-card-name">{item.name}</h4>
+                              </div>
+                              <span className="menu-card-weight">{item.weight}</span>
+                              {item.description && (
+                                <p className="menu-card-desc">{item.description}</p>
+                              )}
+                              <div className="menu-card-price-row">
+                                <span className="menu-card-price">{item.price} ₽</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
                 ))}
               </div>
-            </div>
-
-            {/* Menu List of items */}
-            <div className="menu-list-container">
-              {MENU_DATA.map((category) => (
-                <section key={category.id} id={category.id} className="menu-category-section">
-                  <div className="menu-category-header">
-                    <h2 className="font-display menu-category-title">
-                      <span className="category-marker" style={{ backgroundColor: category.color }} />
-                      {category.title}
-                    </h2>
-                    <div className="category-line" />
-                  </div>
-
-                  <div className="menu-items-grid">
-                    {category.items.map((item) => {
-                      if (item.visible === false) return null;
-                      return (
-                        <div key={item.id} className="menu-card">
-                          {/* Image Wrapper */}
-                          <div className="menu-card-image-wrapper">
-                            {item.image ? (
-                              <img 
-                                src={item.image} 
-                                alt={item.name} 
-                                className="menu-card-image"
-                                loading="lazy" 
-                              />
-                            ) : (
-                              <div className="menu-card-placeholder">
-                                <div className="placeholder-decor">
-                                  {category.id === 'pasta' && <FarfallePasta width={32} height={25} />}
-                                  {category.id === 'pizza' && <RotellePasta width={32} height={32} />}
-                                  {category.id === 'desserts' && <TerracottaHeart width={28} height={28} />}
-                                  {category.id === 'salads' && <OliveBranch width={30} height={30} />}
-                                  {category.id === 'snacks' && <OliveBranch width={30} height={30} />}
-                                  {category.id === 'soups' && <RavioliPasta width={32} height={32} />}
-                                  {category.id === 'main-dishes' && <PennePasta width={36} height={16} />}
-                                  {category.id === 'ice-cream' && <RotellePasta width={30} height={30} />}
-                                </div>
-                                <span className="placeholder-text">Фото блюда</span>
-                              </div>
-                            )}
-                            
-                            {/* Status Tag */}
-                            {item.status && (
-                              <span className={`menu-card-status status-${item.status}`}>
-                                {item.status === 'hit' && 'Хит'}
-                                {item.status === 'new' && 'Новинка'}
-                                {item.status === 'unavailable' && 'Недоступно'}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Content Details */}
-                          <div className="menu-card-content">
-                            <div className="menu-card-title-row">
-                              <h4 className="menu-card-name">{item.name}</h4>
-                            </div>
-                            <span className="menu-card-weight">{item.weight}</span>
-                            {item.description && (
-                              <p className="menu-card-desc">{item.description}</p>
-                            )}
-                            <div className="menu-card-price-row">
-                              <span className="menu-card-price">{item.price} ₽</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              ))}
             </div>
 
             {/* CTA Booking card */}

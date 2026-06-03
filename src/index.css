@@ -1927,10 +1927,16 @@ section[id] {
   color: var(--accent-gold);
 }
 
+/* Menu sections wrapper to restrict sticky categories bar behavior */
+.menu-sections-wrapper {
+  position: relative;
+  margin-bottom: 40px;
+}
+
 /* Sticky Categories Bar */
 .menu-categories-bar-wrapper {
   position: sticky;
-  top: 58px; /* mobile navbar height offset */
+  top: 58px; /* mobile navbar height offset fallback */
   background-color: var(--bg-primary);
   z-index: 90;
   padding: 16px 0;
@@ -2017,6 +2023,37 @@ section[id] {
   color: var(--bg-primary);
   border-color: var(--text-dark);
   box-shadow: 0 4px 12px rgba(33, 27, 24, 0.1);
+}
+
+/* Mobile active indicator style overrides */
+@media (max-width: 950px) {
+  .menu-categories-bar {
+    position: relative; /* Context for absolute positioning of active indicator */
+  }
+
+  .category-pill {
+    position: relative;
+    z-index: 2; /* Keep button text above indicator */
+    transition: color 0.3s ease;
+  }
+
+  /* Override active pill background on mobile to let the indicator show through */
+  .category-pill.active {
+    background-color: transparent !important;
+    color: var(--bg-primary) !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Single active indicator background shape */
+  .category-active-indicator {
+    position: absolute;
+    background-color: var(--text-dark);
+    border-radius: 50px;
+    z-index: 1; /* Sits behind pill text (z-index 2), but above container background */
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(33, 27, 24, 0.15);
+  }
 }
 
 /* Category Sections and Headers */
