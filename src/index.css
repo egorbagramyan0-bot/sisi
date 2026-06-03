@@ -4185,7 +4185,6 @@ section[id] {
   height: 100%;
   object-fit: contain;
   pointer-events: none;
-  animation: pasta-ring-spin 26s linear infinite;
   will-change: transform;
 }
 
@@ -4203,22 +4202,9 @@ section[id] {
     opacity 220ms ease;
 }
 
-.interactive-pasta-menu-link:hover .interactive-pasta-ring-image {
-  animation-duration: 17s;
-}
-
 .interactive-pasta-menu-link:hover .interactive-pasta-ring-label {
   color: var(--accent-terracotta);
   opacity: 1;
-}
-
-@keyframes pasta-ring-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @media (max-width: 1024px) {
@@ -4244,10 +4230,6 @@ section[id] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .interactive-pasta-ring-image {
-    animation: none;
-  }
-
   .interactive-pasta-item {
     transition: none;
   }

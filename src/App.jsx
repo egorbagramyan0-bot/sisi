@@ -140,16 +140,27 @@ export function InteractivePastaField({ onNavigate }) {
   const stateRef = useRef(new Map());
   const frameRef = useRef(null);
   const lastFrameRef = useRef(performance.now());
+  
+  const ringRef = useRef(null);
+  const ringRotationRef = useRef(0);
+  const ringSpeedRef = useRef(13.846); // initial speed (26s per rotation)
+  const isHoveredRef = useRef(false);
 
   useEffect(() => {
+    const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion) {
+      ringSpeedRef.current = 0;
+    }
+
     pastaItems.forEach((item) => {
       stateRef.current.set(item.id, {
         x: item.startX,
         y: item.startY,
-        vx: item.initialVX,
-        vy: item.initialVY,
+        vx: prefersReducedMotion ? 0 : item.initialVX,
+        vy: prefersReducedMotion ? 0 : item.initialVY,
         rotation: 0,
-        rotationSpeed: item.rotationSpeed,
+        rotationSpeed: prefersReducedMotion ? 0 : item.rotationSpeed,
         dragging: false,
         pointerId: null,
         previousPointerX: 0,
@@ -168,6 +179,18 @@ export function InteractivePastaField({ onNavigate }) {
       const delta = Math.min((time - lastFrameRef.current) / 16.67, 2);
       lastFrameRef.current = time;
 
+      // Update ring rotation smoothly without keyframe jumps
+      const targetSpeed = prefersReducedMotion ? 0 : (isHoveredRef.current ? 21.176 : 13.846); // hover is 17s per rotation
+      const lerpFactor = Math.min(0.08 * delta, 1);
+      ringSpeedRef.current += (targetSpeed - ringSpeedRef.current) * lerpFactor;
+
+      const elapsedSeconds = (delta * 16.67) / 1000;
+      ringRotationRef.current = (ringRotationRef.current + ringSpeedRef.current * elapsedSeconds) % 360;
+
+      if (ringRef.current) {
+        ringRef.current.style.transform = `rotate(${ringRotationRef.current}deg)`;
+      }
+
       pastaItems.forEach((item) => {
         const state = stateRef.current.get(item.id);
         const el = itemRefs.current.get(item.id);
@@ -175,56 +198,62 @@ export function InteractivePastaField({ onNavigate }) {
         if (!state || !el) return;
 
         if (!state.dragging) {
-          const ambientStrength = 0.0025;
+          if (prefersReducedMotion) {
+            state.vx = 0;
+            state.vy = 0;
+            state.rotationSpeed = 0;
+          } else {
+            const ambientStrength = 0.0025;
 
-          state.vx += Math.sin(time * 0.0007 + item.startX) * ambientStrength;
-          state.vy += Math.cos(time * 0.0008 + item.startY) * ambientStrength;
+            state.vx += Math.sin(time * 0.0007 + item.startX) * ambientStrength;
+            state.vy += Math.cos(time * 0.0008 + item.startY) * ambientStrength;
 
-          state.x += state.vx * delta;
-          state.y += state.vy * delta;
+            state.x += state.vx * delta;
+            state.y += state.vy * delta;
 
-          state.rotation += state.rotationSpeed * delta;
+            state.rotation += state.rotationSpeed * delta;
 
-          const maxX = rect.width - item.size;
-          const maxY = rect.height - item.size;
+            const maxX = rect.width - item.size;
+            const maxY = rect.height - item.size;
 
-          if (state.x <= 0) {
-            state.x = 0;
-            state.vx = Math.abs(state.vx) * 0.78;
+            if (state.x <= 0) {
+              state.x = 0;
+              state.vx = Math.abs(state.vx) * 0.78;
+            }
+
+            if (state.x >= maxX) {
+              state.x = maxX;
+              state.vx = -Math.abs(state.vx) * 0.78;
+            }
+
+            if (state.y <= 0) {
+              state.y = 0;
+              state.vy = Math.abs(state.vy) * 0.78;
+            }
+
+            if (state.y >= maxY) {
+              state.y = maxY;
+              state.vy = -Math.abs(state.vy) * 0.78;
+            }
+
+            const friction = 0.994;
+            state.vx *= friction;
+            state.vy *= friction;
+
+            const minAmbientSpeed = 0.055;
+
+            if (Math.abs(state.vx) < minAmbientSpeed) {
+              state.vx += item.initialVX * 0.006;
+            }
+
+            if (Math.abs(state.vy) < minAmbientSpeed) {
+              state.vy += item.initialVY * 0.006;
+            }
+
+            const maxVelocity = 8;
+            state.vx = clamp(state.vx, -maxVelocity, maxVelocity);
+            state.vy = clamp(state.vy, -maxVelocity, maxVelocity);
           }
-
-          if (state.x >= maxX) {
-            state.x = maxX;
-            state.vx = -Math.abs(state.vx) * 0.78;
-          }
-
-          if (state.y <= 0) {
-            state.y = 0;
-            state.vy = Math.abs(state.vy) * 0.78;
-          }
-
-          if (state.y >= maxY) {
-            state.y = maxY;
-            state.vy = -Math.abs(state.vy) * 0.78;
-          }
-
-          const friction = 0.994;
-          state.vx *= friction;
-          state.vy *= friction;
-
-          const minAmbientSpeed = 0.055;
-
-          if (Math.abs(state.vx) < minAmbientSpeed) {
-            state.vx += item.initialVX * 0.006;
-          }
-
-          if (Math.abs(state.vy) < minAmbientSpeed) {
-            state.vy += item.initialVY * 0.006;
-          }
-
-          const maxVelocity = 8;
-          state.vx = clamp(state.vx, -maxVelocity, maxVelocity);
-          state.vy = clamp(state.vy, -maxVelocity, maxVelocity);
         }
 
         el.style.transform = `
@@ -343,9 +372,12 @@ export function InteractivePastaField({ onNavigate }) {
         href="/menu" 
         onClick={(e) => onNavigate(e, '/menu')} 
         className="interactive-pasta-menu-link"
+        onMouseEnter={() => { isHoveredRef.current = true; }}
+        onMouseLeave={() => { isHoveredRef.current = false; }}
       >
         <span className="interactive-pasta-ring">
           <img
+            ref={ringRef}
             src="/cafe_sisi_spaghetti_ring.svg"
             alt=""
             aria-hidden="true"
