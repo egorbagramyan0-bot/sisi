@@ -2455,6 +2455,7 @@ section[id] {
   max-width: var(--container-width);
   margin: 0 auto;
   box-sizing: border-box;
+  touch-action: pan-x pan-y;
 }
 
 @media (min-width: 951px) {
