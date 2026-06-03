@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { 
   MapPin, 
@@ -449,6 +449,15 @@ function App() {
   const categoriesBarWrapperRef = useRef(null);
   const isScrollingRef = useRef(false);
   const scrollTimeoutRef = useRef(null);
+  const navbarHeightRef = useRef(58);
+  const categoriesBarHeightRef = useRef(65);
+  const isFirstRef = useRef(true);
+
+  useEffect(() => {
+    if (currentPath === '/menu') {
+      isFirstRef.current = true;
+    }
+  }, [currentPath]);
 
   // Smooth continuous rotation loop for Spaghetti Ring visual with speed transitions
   useEffect(() => {
@@ -674,22 +683,39 @@ function App() {
     };
   }, [showPreloader, isTransitioning, wineCardOpen, breakfastOpen, mobileMenuOpen]);
 
+  // Measure heights on mount, resize, and isScrolled change
   useEffect(() => {
-    const handleScroll = () => {
-      // update heights dynamically
+    if (currentPath !== '/menu') return;
+
+    const measureHeights = () => {
       const navbar = document.querySelector('.navbar');
       let currentNavbarHeight = 0;
       if (window.innerWidth <= 950 && navbar) {
         currentNavbarHeight = navbar.getBoundingClientRect().bottom;
       }
       setNavbarHeight(currentNavbarHeight);
+      navbarHeightRef.current = currentNavbarHeight;
 
       let currentBarHeight = 65;
       if (categoriesBarWrapperRef.current) {
         currentBarHeight = categoriesBarWrapperRef.current.offsetHeight;
         setCategoriesBarHeight(currentBarHeight);
+        categoriesBarHeightRef.current = currentBarHeight;
       }
+    };
 
+    measureHeights();
+    const timer = setTimeout(measureHeights, 150);
+
+    window.addEventListener('resize', measureHeights);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', measureHeights);
+    };
+  }, [currentPath, isScrolled]);
+
+  useEffect(() => {
+    const handleScroll = () => {
       if (window.scrollY > 50) {
         setIsScrolled(true);
       } else {
@@ -705,20 +731,31 @@ function App() {
       if (currentPath === '/menu') {
         if (isScrollingRef.current) return;
         const categories = ['snacks', 'salads', 'soups', 'pasta', 'pizza', 'main-dishes', 'desserts', 'ice-cream'];
-        let currentCat = 'snacks';
-        const offset = currentNavbarHeight + currentBarHeight;
+        let currentCat = categories[0];
+        const offset = navbarHeightRef.current + categoriesBarHeightRef.current;
+        const threshold = window.scrollY + offset + 15; // 15px buffer to activate earlier
+        
         for (const catId of categories) {
           const el = document.getElementById(catId);
           if (el) {
-            const top = el.offsetTop;
-            const height = el.offsetHeight;
-            if (window.scrollY >= top - offset - 10 && window.scrollY < top + height - offset - 10) {
+            if (threshold >= el.offsetTop) {
               currentCat = catId;
-              break;
             }
           }
         }
-        setActiveMenuCategory(currentCat);
+
+        // Highlight the last section if scrolled to the absolute bottom of the page
+        const isAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 15;
+        if (isAtBottom) {
+          currentCat = categories[categories.length - 1];
+        }
+
+        setActiveMenuCategory((prev) => {
+          if (prev !== currentCat) {
+            return currentCat;
+          }
+          return prev;
+        });
       } else {
         // ScrollSpy logic to highlight active navbar section
         const sections = ['menu', 'breakfast', 'wine', 'about', 'contacts'];
@@ -743,52 +780,71 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [currentPath]);
 
-  // Track active indicator position and size dynamically via ResizeObserver
+  const updateIndicator = useCallback(() => {
+    if (currentPath !== '/menu') return;
+
+    const container = categoriesBarRef.current;
+    if (!container) return;
+
+    const activePill = container.querySelector('.category-pill.active');
+    if (activePill) {
+      const left = Math.round(activePill.offsetLeft);
+      const width = Math.round(activePill.offsetWidth);
+      const height = Math.round(activePill.offsetHeight);
+      const top = Math.round(activePill.offsetTop);
+
+      setIndicatorStyle((prev) => {
+        const isFirst = isFirstRef.current || !prev.width || prev.width === '0px';
+        if (isFirstRef.current) {
+          isFirstRef.current = false;
+        }
+        return {
+          transform: `translate3d(${left}px, ${top}px, 0)`,
+          width: `${width}px`,
+          height: `${height}px`,
+          opacity: 1,
+          transition: isFirst 
+            ? 'none' 
+            : 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        };
+      });
+    }
+  }, [currentPath]);
+
+  const updateIndicatorRef = useRef(updateIndicator);
+  useEffect(() => {
+    updateIndicatorRef.current = updateIndicator;
+  }, [updateIndicator]);
+
+  // Track active indicator position and size dynamically via ResizeObserver (only registered once)
   useEffect(() => {
     if (currentPath !== '/menu') return;
 
     const container = categoriesBarRef.current;
     if (!container) return;
 
-    const updateIndicator = () => {
-      if (window.innerWidth > 950) {
-        setIndicatorStyle({ opacity: 0, display: 'none' });
-        return;
-      }
-
-      const activePill = container.querySelector('.category-pill.active');
-      if (activePill) {
-        const left = activePill.offsetLeft;
-        const width = activePill.offsetWidth;
-        const height = activePill.offsetHeight;
-        const top = activePill.offsetTop;
-
-        setIndicatorStyle((prev) => {
-          const isFirst = !prev.width || prev.width === '0px';
-          return {
-            transform: `translate3d(${left}px, ${top}px, 0)`,
-            width: `${width}px`,
-            height: `${height}px`,
-            opacity: 1,
-            transition: isFirst 
-              ? 'none' 
-              : 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-          };
-        });
-      }
-    };
-
     const resizeObserver = new ResizeObserver(() => {
-      updateIndicator();
+      if (updateIndicatorRef.current) {
+        updateIndicatorRef.current();
+      }
     });
     resizeObserver.observe(container);
 
-    updateIndicator();
+    if (updateIndicatorRef.current) {
+      updateIndicatorRef.current();
+    }
 
     return () => {
       resizeObserver.disconnect();
     };
-  }, [activeMenuCategory, currentPath]);
+  }, [currentPath]);
+
+  // Run updateIndicator synchronously on active category change
+  useLayoutEffect(() => {
+    if (currentPath === '/menu') {
+      updateIndicator();
+    }
+  }, [activeMenuCategory, currentPath, updateIndicator]);
 
   // Auto-scroll horizontal categories bar to center the active category pill on mobile
   useEffect(() => {
@@ -1707,15 +1763,20 @@ function App() {
             <a href="#contacts" onClick={(e) => handleNavClick(e, '/#contacts')} className="footer-link">Контакты</a>
           </div>
 
-          <div className="footer-socials">
-            <a href="https://instagram.com" target="_blank" rel="noreferrer" className="social-link">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', verticalAlign: 'middle' }}><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-              Instagram
-            </a>
-            <a href="https://t.me" target="_blank" rel="noreferrer" className="social-link">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', verticalAlign: 'middle' }}><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-              Telegram
-            </a>
+          <div className="footer-socials-wrapper">
+            <div className="footer-socials">
+              <a href={RESTAURANT_INFO.socials.instagram} target="_blank" rel="noreferrer" className="social-link">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', verticalAlign: 'middle' }}><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                Instagram
+              </a>
+              <a href={RESTAURANT_INFO.socials.whatsapp} target="_blank" rel="noreferrer" className="social-link">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                WhatsApp
+              </a>
+            </div>
+            <div className="footer-meta-disclaimer">
+              * Instagram и WhatsApp — продукты компании Meta (запрещена в Российской Федерации).
+            </div>
           </div>
         </div>
         <div style={{ textAlign: 'center', marginTop: '40px', opacity: 0.4, fontSize: '10px', fontFamily: 'var(--font-body)', letterSpacing: '0.05em' }}>

@@ -345,6 +345,7 @@ section[id] {
   height: 1.2em;
   line-height: 1.2em;
   vertical-align: top;
+  white-space: nowrap;
 }
 
 .nav-link-text {
@@ -363,6 +364,7 @@ section[id] {
   display: block;
   color: var(--accent-gold);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 @media (hover: hover) {
@@ -1519,6 +1521,36 @@ section[id] {
   gap: 24px;
 }
 
+.footer-socials-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+@media (max-width: 768px) {
+  .footer-socials-wrapper {
+    align-items: center;
+  }
+}
+
+.footer-meta-disclaimer {
+  font-size: 8px;
+  opacity: 0.45;
+  color: var(--text-dark);
+  font-family: var(--font-body);
+  letter-spacing: 0.02em;
+  text-align: right;
+  max-width: 320px;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .footer-meta-disclaimer {
+    text-align: center;
+  }
+}
+
 .social-link {
   font-family: var(--font-body);
   font-size: 10px;
@@ -2027,7 +2059,7 @@ section[id] {
 }
 
 @media (hover: hover) {
-  .category-pill:hover {
+  .category-pill:not(.active):hover {
     border-color: var(--text-dark);
     background-color: rgba(33, 27, 24, 0.03);
   }
@@ -2048,7 +2080,7 @@ section[id] {
 
   .category-pill {
     position: relative;
-    z-index: 2; /* Keep button text above indicator */
+    z-index: 1; /* Below the gradient overlays (z-index 2) */
     transition: color 0.3s ease;
   }
 
@@ -2058,6 +2090,7 @@ section[id] {
     color: var(--bg-primary) !important;
     border-color: transparent !important;
     box-shadow: none !important;
+    z-index: 4; /* Above the active indicator (z-index 3) and gradients (z-index 2) */
   }
 
   /* Single active indicator background shape */
@@ -2065,9 +2098,54 @@ section[id] {
     position: absolute;
     background-color: var(--text-dark);
     border-radius: 50px;
-    z-index: 1; /* Sits behind pill text (z-index 2), but above container background */
+    z-index: 3; /* Above the gradient overlays (z-index 2) but below active text (z-index 4) */
     pointer-events: none;
     box-shadow: 0 4px 12px rgba(33, 27, 24, 0.15);
+  }
+}
+
+/* Desktop active indicator style overrides */
+@media (min-width: 951px) {
+  .menu-categories-bar {
+    position: relative; /* Context for absolute positioning of active indicator */
+  }
+
+  .category-pill {
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s ease;
+    
+    /* Anti-blur rendering improvements */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* Override active pill background on desktop to let the indicator show through */
+  .category-pill.active {
+    background-color: transparent !important;
+    color: var(--bg-primary) !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    z-index: 4; /* Above the active indicator (z-index 3) */
+  }
+
+  /* Single active indicator background shape */
+  .category-active-indicator {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: var(--text-dark);
+    border-radius: 50px;
+    z-index: 3; /* Above pills but below active text */
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(33, 27, 24, 0.15);
+    display: block !important;
+    
+    /* Anti-blur rendering improvements */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
   }
 }
 

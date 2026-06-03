@@ -1,6 +1,7 @@
 import { useCallback, useLayoutEffect, useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { gsap } from 'gsap';
+import { RESTAURANT_INFO } from './RestaurantInfo';
 
 export const MobileMenu = ({
   currentPath,
@@ -513,13 +514,18 @@ export const MobileMenu = ({
                   <p className="sm-panel-address">Темерницкая ул., 55</p>
                   <a href="tel:+79614365680" className="sm-panel-phone">+7 (961) 436-56-80</a>
                   
-                  <div className="sm-panel-socials">
-                    <a href="https://instagram.com" target="_blank" rel="noreferrer" className="sm-panel-social-link">
-                      Instagram
-                    </a>
-                    <a href="https://t.me" target="_blank" rel="noreferrer" className="sm-panel-social-link">
-                      Telegram
-                    </a>
+                  <div className="sm-panel-socials-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div className="sm-panel-socials">
+                      <a href={RESTAURANT_INFO.socials.instagram} target="_blank" rel="noreferrer" className="sm-panel-social-link">
+                        Instagram
+                      </a>
+                      <a href={RESTAURANT_INFO.socials.whatsapp} target="_blank" rel="noreferrer" className="sm-panel-social-link">
+                        WhatsApp
+                      </a>
+                    </div>
+                    <p style={{ fontSize: '8px', opacity: 0.45, color: '#211B18', margin: '4px 0 0', lineHeight: '1.3', letterSpacing: '0.01em' }}>
+                      * Instagram и WhatsApp — продукты компании Meta (запрещена в РФ)
+                    </p>
                   </div>
                 </div>
               </div>
