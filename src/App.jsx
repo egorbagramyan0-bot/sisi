@@ -693,19 +693,19 @@ function App() {
   useEffect(() => {
     if (!showPreloader) return;
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const duration = prefersReducedMotion ? 800 : 2100;
+    const duration = prefersReducedMotion ? 500 : 1600;
     const timer = setTimeout(() => {
       setMinTimePassed(true);
     }, duration);
     return () => clearTimeout(timer);
   }, [showPreloader]);
 
-  // 2. Watchdog safety timer (6000ms)
+  // 2. Watchdog safety timer (4000ms)
   useEffect(() => {
     if (showPreloader) {
       const timer = setTimeout(() => {
         setWatchdogTriggered(true);
-      }, 6000);
+      }, 4000);
       return () => clearTimeout(timer);
     }
   }, [showPreloader]);
