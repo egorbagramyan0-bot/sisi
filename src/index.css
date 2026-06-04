@@ -1728,6 +1728,13 @@ section[id] {
   gap: 16px;
 }
 
+@media (max-width: 500px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
 /* Success Card */
 .booking-success {
   display: flex;
