@@ -413,6 +413,11 @@ export const MobileMenu = ({
 
   // Handle action click (close menu first, then execute)
   const handleItemClick = (e, actionType, target) => {
+    if (actionType === 'external') {
+      closeMenu();
+      return;
+    }
+
     e.preventDefault();
     if (busyRef.current) return;
     
@@ -430,7 +435,8 @@ export const MobileMenu = ({
     { id: 'breakfast', num: '02', label: 'Завтраки', action: 'modal', target: 'breakfast' },
     { id: 'wine', num: '03', label: 'Винная карта', action: 'modal', target: 'wine' },
     { id: 'about', num: '04', label: 'О нас', action: 'navigate', target: '/about' },
-    { id: 'contacts', num: '05', label: 'Контакты', action: 'navigate', target: '/#contacts' }
+    { id: 'contacts', num: '05', label: 'Контакты', action: 'navigate', target: '/#contacts' },
+    { id: 'delivery', num: '06', label: 'Доставка', action: 'external', target: 'https://eda.yandex.ru/r/sisi_bistr?placeSlug=sisi_bistr' }
   ];
 
   return (
@@ -486,6 +492,7 @@ export const MobileMenu = ({
                         href={it.target}
                         onClick={(e) => handleItemClick(e, it.action, it.target)}
                         aria-label={it.label}
+                        {...(it.action === 'external' ? { target: '_blank', rel: 'noreferrer' } : {})}
                       >
                         <span className="sm-panel-itemLabel">
                           <span className="sm-panel-item-num">{it.num}</span>
