@@ -399,7 +399,7 @@ const WineCardModal = ({ isOpen, onClose, imageSrc = "/vinecard.webp", altText =
 
             {/* Legal Notice */}
             <div className="wine-modal-legal-notice">
-              Информация представлена для ознакомления с ассортиментом ресторана. Актуальное наличие уточняйте у официанта. 18+
+              Информация представлена для&nbsp;ознакомления с&nbsp;ассортиментом ресторана. Актуальное наличие уточняйте у&nbsp;официанта. 18+
             </div>
           </motion.div>
         </motion.div>

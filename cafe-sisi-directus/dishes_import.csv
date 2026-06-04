@@ -1,0 +1,52 @@
+name,slug,weight,description,price,image,category,sort,status
+Паштет утиный с конфи из подкопченной брусники и бриошью,pashtet-utinyy-s-konfi-iz-podkopchennoy-brusniki-i-brioshyu,200 гр.,,550,,snacks,1,published
+Паштет из куриной печени с вареньем из груши,pashtet-iz-kurinoy-pecheni-s-varenem-iz-grushi,210 гр.,,450,,snacks,2,published
+Тартар из покромки с трюфелем и муссом из пармезана,tartar-iz-pokromki-s-tryufelem-i-mussom-iz-parmezana,160 гр.,,750,,snacks,3,published
+"Тартар с тунцом, гуакамоле и соусом из арбуза и юдзу",tartar-s-tuntsom-guakamole-i-sousom-iz-arbuza-i-yudzu,185 гр.,,700,,snacks,4,published
+"Камамбер с запечёнными сливами, грушей и кедровыми орехами",kamamber-s-zapechyonnymi-slivami-grushey-i-kedrovymi-orekhami,300 гр.,,750,,snacks,5,published
+Вителло Тоннато с ростбифом,vitello-tonnato-s-rostbifom,140 гр.,,700,,snacks,6,published
+"Брускетта с креветками, страчателлой и рукколой",brusketta-s-krevetkami-strachatelloy-i-rukkoloy,195 гр.,,700,,snacks,7,published
+Брускетта с риетом из лосося,brusketta-s-rietom-iz-lososya,170 гр.,,550,,snacks,8,published
+Баклажаны пармиджано со страчателлой в томатном соусе,baklazhany-parmidzhano-so-strachatelloy-v-tomatnom-souse,350 гр.,,690,,snacks,9,published
+Карпаччо из говядины с рукколой и трюфельным соусом,karpachcho-iz-govyadiny-s-rukkoloy-i-tryufelnym-sousom,130 гр.,,650,,snacks,10,published
+Винный сет,vinnyy-set,175 гр.,,850,,snacks,11,published
+Гриссини с травами,grissini-s-travami,50 гр.,,50,,snacks,12,published
+Салат с куриным филе,salat-s-kurinym-file,220 гр.,,620,,salads,1,published
+Зелёный салат со страчателлой и форелью,zelyonyy-salat-so-strachatelloy-i-forelyu,250 гр.,,790,,salads,2,published
+"Салат с тунцом, фенхелем и соусом из абрикоса",salat-s-tuntsom-fenkhelem-i-sousom-iz-abrikosa,280 гр.,,690,,salads,3,published
+"Салат с ростбифом, картофелем и красным луком",salat-s-rostbifom-kartofelem-i-krasnym-lukom,280 гр.,,690,,salads,4,published
+Салат с кальмаром и соусом из томатов,salat-s-kalmarom-i-sousom-iz-tomatov,230 гр.,,690,,salads,5,published
+Салат с креветками и кальмарами в соусе Песто,salat-s-krevetkami-i-kalmarami-v-souse-pesto,180 гр.,,670,,salads,6,published
+Овощной салат с печёными томатами и сырным кремом,ovoshchnoy-salat-s-pechyonymi-tomatami-i-syrnym-kremom,230 гр.,,590,,salads,7,published
+Куриный бульон с фрикадельками и птитимом,kurinyy-bulon-s-frikadelkami-i-ptitimom,350 гр.,,480,,soups,1,published
+Крем-суп из шампиньонов со сливочно-трюфельным кремом,krem-sup-iz-shampinonov-so-slivochno-tryufelnym-kremom,350 гр.,,520,,soups,2,published
+Тыквенный крем-суп с кокосовым молоком и креветками,tykvennyy-krem-sup-s-kokosovym-molokom-i-krevetkami,370 гр.,,550,,soups,3,published
+Крем-суп из спаржи с креветками,krem-sup-iz-sparzhi-s-krevetkami,320 гр.,,570,,soups,4,published
+"Средиземноморский суп с лангустинами, кальмарами и фенхелем",sredizemnomorskiy-sup-s-langustinami-kalmarami-i-fenkhelem,250 гр.,,750,,soups,5,published
+Птитим с лангустинами в сливочном соусе,ptitim-s-langustinami-v-slivochnom-souse,280 гр.,,770,,pasta,1,published
+Карбонара,carbonara,270 гр.,,670,,pasta,2,published
+Паста с креветками и соусом из чоризо,pasta-s-krevetkami-i-sousom-iz-chorizo,275 гр.,,690,,pasta,3,published
+Лазанья,lasagna,340 гр.,,750,,pasta,4,published
+Паста с лангустинами и соусом Песто,pasta-s-langustinami-i-sousom-pesto,240 гр.,,750,,pasta,5,published
+Паста с крабом и трюфельным соусом,pasta-s-krabom-i-tryufelnym-sousom,290 гр.,,990,,pasta,6,published
+Паста с курицей и шампиньонами в сливочном соусе,pasta-s-kuritsey-i-shampinonami-v-slivochnom-souse,320 гр.,,650,,pasta,7,published
+Равиоли с кроликом в соусе из шампиньонов и шалфея,ravioli-s-krolikom-v-souse-iz-shampinonov-i-shalfeya,300 гр.,,570,,pasta,8,published
+Лингвини в сливочном соусе и тартаром из лангустинов,lingvini-v-slivochnom-souse-i-tartarom-iz-langustinov,340 гр.,,750,,pasta,9,published
+Тальолини с соусом Болоньезе,talolini-s-sousom-boloneze,270 гр.,,750,,pasta,10,published
+4 сыра,four-cheese,390 гр.,"Состав: моцарелла, чеддер, горгонзола, пармезан",780,,pizza,1,published
+Пепперони,pepperoni,400 гр.,,750,,pizza,2,published
+Окорок с халапеньо,okorok-s-khalapeno,430 гр.,,690,,pizza,3,published
+Мортаделла с жареными шампиньонами,mortadella-s-zharenymi-shampinonami,480 гр.,,780,,pizza,4,published
+Страчателла с прошутто,strachatella-s-proshutto,480 гр.,,990,,pizza,5,published
+Рулет из цыпленка с молодым мини-картофелем и соусом из горгонзолы,rulet-iz-tsyplenka-s-molodym-mini-kartofelem-i-sousom-iz-gorgonzoly,325 гр.,,650,,main-dishes,1,published
+Маринованная в травах грудка цыпленка с вешенками и сливочным соусом,marinovannaya-v-travakh-grudka-tsyplenka-s-veshenkami-i-slivochnym-sousom,200 гр.,,650,,main-dishes,2,published
+Фланк-стейк с мини-картофелем и грибами,flank-steyk-s-mini-kartofelem-i-gribami,270 гр.,,990,,main-dishes,3,published
+Полента с тигровыми креветками и овощами,polenta-s-tigrovymi-krevetkami-i-ovoshchami,270 гр.,,790,,main-dishes,4,published
+Запечённый палтус с жареным брокколи,zapechyonnyy-paltus-s-zharenym-brokkoli,440 гр.,,850,,main-dishes,5,published
+Чакролл в соусе демиглас с зелёным горошком с птитимом в соусе Песто,chakroll-v-souse-demiglas-s-zelyonym-goroshkom-s-ptitimom-v-souse-pesto,270 гр.,,850,,main-dishes,6,published
+"Утиное филе с демигласом, древесными грибами и пюре из каштанов",utinoe-file-s-demiglasom-drevesnymi-gribami-i-pyure-iz-kashtanov,220 гр.,,720,,main-dishes,7,published
+Панна-котта с вареньем из облепихи и тыквы,panna-kotta-s-varenem-iz-oblepikhi-i-tykvy,220 гр.,,490,,desserts,1,published
+Шоколадный фондан с пломбиром,shokoladnyy-fondan-s-plombirom,160 гр.,,490,,desserts,2,published
+Баскский чизкейк,baskskiy-chizkeyk,200 гр.,,490,,desserts,3,published
+Сорбет,sorbet,80 гр.,"Вкусы: мохито, малина, манго-маракуйя",250,,ice-cream,1,published
+Сливочное мороженое,slivochnoe-morozhenoe,80 гр.,"Вкусы: пломбир, манго, шоколад, клубника",250,,ice-cream,2,published

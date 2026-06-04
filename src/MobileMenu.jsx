@@ -511,7 +511,7 @@ export const MobileMenu = ({
                   alt="Cafe Sisi Italy Logo"
                 />
                 <div className="sm-panel-footer-contacts">
-                  <p className="sm-panel-address">Темерницкая ул., 55</p>
+                  <p className="sm-panel-address">Темерницкая&nbsp;ул., 55</p>
                   <a href="tel:+79614365680" className="sm-panel-phone">+7 (961) 436-56-80</a>
                   
                   <div className="sm-panel-socials-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -524,7 +524,7 @@ export const MobileMenu = ({
                       </a>
                     </div>
                     <p style={{ fontSize: '8px', opacity: 0.45, color: '#211B18', margin: '4px 0 0', lineHeight: '1.3', letterSpacing: '0.01em' }}>
-                      * Instagram и WhatsApp — продукты компании Meta (запрещена в РФ)
+                      * Instagram и&nbsp;WhatsApp&nbsp;— продукты компании Meta (запрещена в&nbsp;РФ)
                     </p>
                   </div>
                 </div>

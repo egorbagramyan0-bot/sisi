@@ -1,0 +1,19 @@
+services:
+  directus:
+    image: directus/directus:11.17.0
+    ports:
+      - "8055:8055"
+    volumes:
+      - directus_database:/directus/database
+      - ./uploads:/directus/uploads
+      - ./extensions:/directus/extensions
+    environment:
+      SECRET: "cafe-sisi-local-secret-2026-change-before-production"
+      DB_CLIENT: "sqlite3"
+      DB_FILENAME: "/directus/database/data.db"
+      WEBSOCKETS_ENABLED: "true"
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "true"
+
+volumes:
+  directus_database:

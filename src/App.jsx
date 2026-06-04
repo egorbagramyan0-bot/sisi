@@ -26,6 +26,8 @@ import {
   RotellePasta 
 } from './SvgIcons';
 
+import { fetchMenuData, getCachedMenu } from './menuService';
+
 const HERO_VIDEOS = [
   {
     id: 'left',
@@ -85,6 +87,38 @@ const AboutImage = ({ src, alt, className, label }) => {
       alt={alt} 
       className={className} 
       onError={() => setHasError(true)} 
+    />
+  );
+};
+
+const MenuCardImage = ({ src, alt, categoryId }) => {
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError || !src) {
+    return (
+      <div className="menu-card-placeholder">
+        <div className="placeholder-decor">
+          {(categoryId === 'pasta') && <FarfallePasta width={32} height={25} />}
+          {(categoryId === 'pizza' || categoryId === 'roman-pizza') && <RotellePasta width={32} height={32} />}
+          {(categoryId === 'desserts') && <TerracottaHeart width={28} height={28} />}
+          {(categoryId === 'salads') && <OliveBranch width={30} height={30} />}
+          {(categoryId === 'snacks' || categoryId === 'appetizers') && <OliveBranch width={30} height={30} />}
+          {(categoryId === 'soups') && <RavioliPasta width={32} height={32} />}
+          {(categoryId === 'main-dishes' || categoryId === 'main-courses') && <PennePasta width={36} height={16} />}
+          {(categoryId === 'ice-cream') && <RotellePasta width={30} height={30} />}
+        </div>
+        <span className="placeholder-text">Фото блюда</span>
+      </div>
+    );
+  }
+
+  return (
+    <img 
+      src={src} 
+      alt={alt} 
+      className="menu-card-image"
+      loading="lazy" 
+      onError={() => setHasError(true)}
     />
   );
 };
@@ -405,6 +439,14 @@ function App() {
     return '/';
   });
   const [activeMenuCategory, setActiveMenuCategory] = useState('snacks');
+  const [menuData, setMenuData] = useState(() => {
+    const cached = getCachedMenu();
+    if (cached) {
+      return cached;
+    }
+    return MENU_DATA;
+  });
+  const [isFetching, setIsFetching] = useState(false);
   const [navbarHeight, setNavbarHeight] = useState(58);
   const [categoriesBarHeight, setCategoriesBarHeight] = useState(65);
   const [indicatorStyle, setIndicatorStyle] = useState({ transform: 'translate3d(0px, 0px, 0)', width: '0px', height: '0px', opacity: 0 });
@@ -413,8 +455,8 @@ function App() {
   const [wineCardOpen, setWineCardOpen] = useState(false);
   const [breakfastOpen, setBreakfastOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeStory, setActiveStory] = useState(null); // null | 0 | 1 | 2
-  const [storyPlaying, setStoryPlaying] = useState(true);
+  const [activeVideoIndex, setActiveVideoIndex] = useState(null); // null | 0 | 1 | 2
+  const [videoModalError, setVideoModalError] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('');
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -437,7 +479,7 @@ function App() {
     const ref = slot === 'left' ? leftVideoRef : slot === 'middle' ? middleVideoRef : rightVideoRef;
     if (ref.current) {
       ref.current.playbackRate = 0.9;
-      if (!showPreloader) {
+      if (!showPreloader && activeVideoIndex === null) {
         ref.current.play().catch(err => console.log(`${slot} video play on canplay failed`, err));
       }
     }
@@ -529,6 +571,46 @@ function App() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  // Fetch Directus menu data with fallback to local MENU_DATA using menuService
+  useEffect(() => {
+    if (currentPath !== '/menu') return;
+
+    let isMounted = true;
+    setIsFetching(true);
+
+    const loadMenu = async () => {
+      try {
+        const data = await fetchMenuData();
+        if (isMounted) {
+          setMenuData(data);
+        }
+      } catch (err) {
+        console.error('[Directus Connection Diagnostics] Unexpected loading error:', err);
+      } finally {
+        if (isMounted) {
+          setIsFetching(false);
+        }
+      }
+    };
+
+    loadMenu();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentPath]);
+
+
+  // Sync activeMenuCategory if current is not in menuData (e.g. snacks -> appetizers)
+  useEffect(() => {
+    if (menuData.length > 0) {
+      const hasActive = menuData.some(cat => cat.id === activeMenuCategory);
+      if (!hasActive) {
+        setActiveMenuCategory(menuData[0].id);
+      }
+    }
+  }, [menuData, activeMenuCategory]);
 
   // Lock mobile hero height to prevent layout jumps/zoom on scroll
   useEffect(() => {
@@ -656,7 +738,7 @@ function App() {
 
   // 4. Fallback autostart when returning to homepage without preloader
   useEffect(() => {
-    if (currentPath === '/' && !showPreloader) {
+    if (currentPath === '/' && !showPreloader && activeVideoIndex === null) {
       if (leftVideoRef.current) {
         leftVideoRef.current.playbackRate = 0.9;
         leftVideoRef.current.play().catch(err => console.log('left video autostart failed', err));
@@ -670,10 +752,10 @@ function App() {
         rightVideoRef.current.play().catch(err => console.log('right video autostart failed', err));
       }
     }
-  }, [currentPath, showPreloader]);
+  }, [currentPath, showPreloader, activeVideoIndex]);
 
   useEffect(() => {
-    if (showPreloader || isTransitioning || wineCardOpen || breakfastOpen || mobileMenuOpen) {
+    if (showPreloader || isTransitioning || wineCardOpen || breakfastOpen || mobileMenuOpen || activeVideoIndex !== null) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -681,7 +763,7 @@ function App() {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [showPreloader, isTransitioning, wineCardOpen, breakfastOpen, mobileMenuOpen]);
+  }, [showPreloader, isTransitioning, wineCardOpen, breakfastOpen, mobileMenuOpen, activeVideoIndex]);
 
   // Measure heights on mount, resize, and isScrolled change
   useEffect(() => {
@@ -730,7 +812,8 @@ function App() {
 
       if (currentPath === '/menu') {
         if (isScrollingRef.current) return;
-        const categories = ['snacks', 'salads', 'soups', 'pasta', 'pizza', 'main-dishes', 'desserts', 'ice-cream'];
+        const categories = menuData.map(cat => cat.id);
+        if (categories.length === 0) return;
         let currentCat = categories[0];
         const offset = navbarHeightRef.current + categoriesBarHeightRef.current;
         const threshold = window.scrollY + offset + 15; // 15px buffer to activate earlier
@@ -899,46 +982,130 @@ function App() {
 
 
 
-  // Arch Data (mock vertical videos for lightbox)
-  const archesData = [
-    {
-      title: 'Свежая Паста',
-      desc: 'Наш шеф-повар натирает свежий летний трюфель на домашнюю пасту тальятелле, приготовленную вручную этим утром.',
-      img: '/pasta_truffle.webp',
-      time: '9:16',
-      videoUrl: '#'
-    },
-    {
-      title: 'Винная Культура',
-      desc: 'Идеальный бокал тосканского Кьянти Классико раскрывает свой букет в лучах вечернего солнца.',
-      img: '/wine_pour.webp',
-      time: '9:16',
-      videoUrl: '#'
-    },
-    {
-      title: 'Интерьер & Уют',
-      desc: 'Свет свечей, мягкие тени и аромат свежевыпеченной фокаччи — атмосфера настоящего итальянского дома.',
-      img: '/cozy_interior.webp',
-      time: '9:16',
-      videoUrl: '#'
-    }
-  ];
+  const modalVideoRef = useRef(null);
 
-  // Auto-scroll timeline simulator for story viewer
-  useEffect(() => {
-    let interval;
-    if (activeStory !== null && storyPlaying) {
-      interval = setInterval(() => {
-        setActiveStory((prev) => {
-          if (prev === archesData.length - 1) {
-            return null; // Close stories after the last one
-          }
-          return prev + 1;
-        });
-      }, 5000); // 5 seconds per story
+  const handleCloseVideoModal = useCallback(() => {
+    if (activeVideoIndex === null) return;
+
+    const modalVideo = modalVideoRef.current;
+    const finalTime = modalVideo ? modalVideo.currentTime : 0;
+
+    console.log(`[Video Modal] Closing modal. Window index: ${activeVideoIndex}, source: ${HERO_VIDEOS[activeVideoIndex].videoUrl}, final timestamp: ${finalTime.toFixed(2)}s`);
+
+    if (modalVideo) {
+      modalVideo.pause();
     }
-    return () => clearInterval(interval);
-  }, [activeStory, storyPlaying, archesData.length]);
+
+    // Sync the background video's currentTime
+    const bgRefs = [leftVideoRef, middleVideoRef, rightVideoRef];
+    const activeBgRef = bgRefs[activeVideoIndex];
+    if (activeBgRef.current) {
+      activeBgRef.current.currentTime = finalTime;
+    }
+
+    // Resume background videos (ensuring they remain muted)
+    const playPromises = [
+      leftVideoRef.current?.play(),
+      middleVideoRef.current?.play(),
+      rightVideoRef.current?.play()
+    ];
+
+    Promise.all(playPromises.map(p => p ? p.catch(() => {}) : null)).then(() => {
+      console.log('[Video Modal] Background videos resumed successfully.');
+    });
+
+    setActiveVideoIndex(null);
+  }, [activeVideoIndex]);
+
+  // Sync background video to modal video on open
+  useEffect(() => {
+    if (activeVideoIndex !== null) {
+      setVideoModalError(false);
+      const bgRefs = [leftVideoRef, middleVideoRef, rightVideoRef];
+      const activeBgRef = bgRefs[activeVideoIndex];
+      const bgVideo = activeBgRef.current;
+      const initialTime = bgVideo ? bgVideo.currentTime : 0;
+
+      console.log(`[Video Modal] Opened window index: ${activeVideoIndex}, source: ${HERO_VIDEOS[activeVideoIndex].videoUrl}, syncing timestamp: ${initialTime.toFixed(2)}s`);
+
+      // Pause the background videos
+      leftVideoRef.current?.pause();
+      middleVideoRef.current?.pause();
+      rightVideoRef.current?.pause();
+
+      let activeListener = null;
+      let activeVideoEl = null;
+
+      const setupModalVideo = (videoEl) => {
+        activeVideoEl = videoEl;
+        const applyTimeAndPlay = () => {
+          try {
+            videoEl.currentTime = initialTime;
+          } catch (e) {
+            console.warn('[Video Modal] Error setting currentTime:', e);
+          }
+          videoEl.muted = false; // Turn sound on
+          videoEl.play()
+            .then(() => {
+              console.log(`[Video Modal] Video started with sound successfully. Timestamp: ${initialTime.toFixed(2)}s, sound: enabled`);
+            })
+            .catch(err => {
+              console.warn('[Video Modal] Auto-play with sound blocked by browser policy, attempting muted fallback:', err);
+              // Fallback to muted autoplay if browser blocks audio
+              videoEl.muted = true;
+              videoEl.play().catch(playErr => {
+                console.error('[Video Modal] Error: Failed to play video even in muted fallback:', playErr);
+              });
+            });
+        };
+
+        if (videoEl.readyState >= 1) {
+          applyTimeAndPlay();
+        } else {
+          activeListener = () => {
+            applyTimeAndPlay();
+            videoEl.removeEventListener('canplay', activeListener);
+            activeListener = null;
+          };
+          videoEl.addEventListener('canplay', activeListener);
+        }
+      };
+
+      const modalVideo = modalVideoRef.current;
+      let checkRefInterval = null;
+      if (modalVideo) {
+        setupModalVideo(modalVideo);
+      } else {
+        checkRefInterval = setInterval(() => {
+          if (modalVideoRef.current) {
+            clearInterval(checkRefInterval);
+            checkRefInterval = null;
+            setupModalVideo(modalVideoRef.current);
+          }
+        }, 30);
+      }
+
+      return () => {
+        if (checkRefInterval) {
+          clearInterval(checkRefInterval);
+        }
+        if (activeVideoEl && activeListener) {
+          activeVideoEl.removeEventListener('canplay', activeListener);
+        }
+      };
+    }
+  }, [activeVideoIndex]);
+
+  // Listen for Esc key to close video modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        handleCloseVideoModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleCloseVideoModal]);
 
   return (
     <>
@@ -1061,6 +1228,7 @@ function App() {
 
       {currentPath === '/menu' ? (
         <div className="main-content-layout">
+          {isFetching && <div className="menu-sync-indicator" />}
           <div className="menu-page-container">
             {/* Header intro block */}
             <header className="menu-page-header">
@@ -1087,7 +1255,7 @@ function App() {
                   {/* Single active indicator for mobile */}
                   <div className="category-active-indicator" style={indicatorStyle} />
 
-                  {MENU_DATA.map((category) => (
+                  {menuData.map((category) => (
                     <button
                       key={category.id}
                       className={`category-pill ${activeMenuCategory === category.id ? 'active' : ''}`}
@@ -1118,7 +1286,7 @@ function App() {
 
               {/* Menu List of items */}
               <div className="menu-list-container">
-                {MENU_DATA.map((category) => (
+                {menuData.map((category) => (
                   <section key={category.id} id={category.id} className="menu-category-section">
                     <div className="menu-category-header">
                       <h2 className="font-display menu-category-title">
@@ -1135,28 +1303,11 @@ function App() {
                           <div key={item.id} className="menu-card">
                             {/* Image Wrapper */}
                             <div className="menu-card-image-wrapper">
-                              {item.image ? (
-                                <img 
-                                  src={item.image} 
-                                  alt={item.name} 
-                                  className="menu-card-image"
-                                  loading="lazy" 
-                                />
-                              ) : (
-                                <div className="menu-card-placeholder">
-                                  <div className="placeholder-decor">
-                                    {category.id === 'pasta' && <FarfallePasta width={32} height={25} />}
-                                    {category.id === 'pizza' && <RotellePasta width={32} height={32} />}
-                                    {category.id === 'desserts' && <TerracottaHeart width={28} height={28} />}
-                                    {category.id === 'salads' && <OliveBranch width={30} height={30} />}
-                                    {category.id === 'snacks' && <OliveBranch width={30} height={30} />}
-                                    {category.id === 'soups' && <RavioliPasta width={32} height={32} />}
-                                    {category.id === 'main-dishes' && <PennePasta width={36} height={16} />}
-                                    {category.id === 'ice-cream' && <RotellePasta width={30} height={30} />}
-                                  </div>
-                                  <span className="placeholder-text">Фото блюда</span>
-                                </div>
-                              )}
+                              <MenuCardImage 
+                                src={item.image} 
+                                alt={item.name} 
+                                categoryId={category.id} 
+                              />
                               
                               {/* Status Tag */}
                               {item.status && (
@@ -1173,7 +1324,9 @@ function App() {
                               <div className="menu-card-title-row">
                                 <h4 className="menu-card-name">{item.name}</h4>
                               </div>
-                              <span className="menu-card-weight">{item.weight}</span>
+                              {item.weight && (
+                                <span className="menu-card-weight">{item.weight}</span>
+                              )}
                               {item.description && (
                                 <p className="menu-card-desc">{item.description}</p>
                               )}
@@ -1196,7 +1349,7 @@ function App() {
                 <span className="section-label">Резерв столов</span>
                 <h3 className="font-display menu-cta-title">Выбрали любимое блюдо?</h3>
                 <p className="menu-cta-body">
-                  Забронируйте стол и проведите вечер в атмосфере настоящей Италии.
+                  Забронируйте стол и&nbsp;проведите вечер в&nbsp;атмосфере настоящей Италии.
                 </p>
                 <button className="btn btn-dark" onClick={() => setBookingOpen(true)}>
                   Забронировать стол
@@ -1222,10 +1375,10 @@ function App() {
                   </div>
                 </div>
                 <div className="about-intro-right">
-                  <span className="section-label">Шеф-повар и ресторатор</span>
+                  <span className="section-label">Шеф-повар и&nbsp;ресторатор</span>
                   <h1 className="font-display about-chef-name">Владимир<br />Бектемиров</h1>
                   <p className="font-serif about-chef-quote">
-                    «Для меня еда — это способ выразить заботу, поделиться теплом и рассказать историю о традициях, которые мы бережно храним и переосмысляем с любовью».
+                    «Для&nbsp;меня еда&nbsp;— это способ выразить заботу, поделиться теплом и&nbsp;рассказать историю о&nbsp;традициях, которые мы&nbsp;бережно храним и&nbsp;переосмысляем с&nbsp;любовью».
                   </p>
                   <div className="about-chef-signature">
                     <span className="font-cursive">con amore, Vladimir</span>
@@ -1240,7 +1393,7 @@ function App() {
               <div className="about-quote-container">
                 <span className="quote-mark">“</span>
                 <p className="about-quote-text font-serif">
-                  Sisi — это маленькая Италия в самом сердце Ростова. Место, где время замедляет свой ход, а простые вещи — свежая паста, бокал вина и улыбка близкого человека — обретают истинную ценность.
+                  Sisi&nbsp;— это маленькая Италия в&nbsp;самом сердце Ростова. Место, где&nbsp;время замедляет свой ход, а&nbsp;простые вещи&nbsp;— свежая паста, бокал вина и&nbsp;улыбка близкого человека&nbsp;— обретают истинную ценность.
                 </p>
                 <span className="font-cursive about-quote-sig">Da Sisi con amore</span>
               </div>
@@ -1253,7 +1406,7 @@ function App() {
                   <span className="section-label">Концепция</span>
                   <h2 className="section-title">Теплый итальянский минимализм</h2>
                   <p className="section-body">
-                    Интерьер Cafe Sisi задуман как продолжение нашей философии: ничего лишнего, только естественная красота и уют. Мы использовали натуральные материалы — дерево, глину, терракоту и лен. Мягкий свет, теплые песочные оттенки и обилие живых растений создают ощущение загородного дома на холмах Тосканы.
+                    Интерьер Cafe Sisi задуман как&nbsp;продолжение нашей философии: ничего лишнего, только естественная красота и&nbsp;уют. Мы&nbsp;использовали натуральные материалы&nbsp;— дерево, глину, терракоту и&nbsp;лен. Мягкий свет, теплые песочные оттенки и&nbsp;обилие живых растений создают ощущение загородного дома на&nbsp;холмах Тосканы.
                   </p>
                   <span className="font-cursive about-concept-sig">Benvenuti a casa</span>
                 </div>
@@ -1280,19 +1433,19 @@ function App() {
                     <div className="about-principle-item">
                       <h3 className="about-principle-title">01 / Свежая паста</h3>
                       <p className="about-principle-desc">
-                        Мы лепим и катаем пасту вручную каждое утро, используя исключительно итальянскую муку из твердых сортов пшеницы Semola и свежие фермерские желтки. Это сердце нашего меню.
+                        Мы&nbsp;лепим и&nbsp;катаем пасту вручную каждое утро, используя исключительно итальянскую муку из&nbsp;твердых сортов пшеницы Semola и&nbsp;свежие фермерские желтки. Это&nbsp;сердце нашего меню.
                       </p>
                     </div>
                     <div className="about-principle-item">
                       <h3 className="about-principle-title">02 / Сезонные продукты</h3>
                       <p className="about-principle-desc">
-                        Меню Cafe Sisi меняется вслед за сезонами. Мы работаем напрямую с местными фермерами и поставщиками, чтобы отбирать только самые спелые томаты, свежую зелень и фермерские сыры.
+                        Меню Cafe Sisi меняется вслед за&nbsp;сезонами. Мы&nbsp;работаем напрямую с&nbsp;местными фермерами и&nbsp;поставщиками, чтобы отбирать только самые спелые томаты, свежую зелень и&nbsp;фермерские сыры.
                       </p>
                     </div>
                     <div className="about-principle-item">
                       <h3 className="about-principle-title">03 / Авторский взгляд</h3>
                       <p className="about-principle-desc">
-                        Сохраняя традиционные итальянские рецепты, наш шеф Владимир Бектемиров добавляет в них тонкие авторские акценты, создавая современную классику с ярким вкусом.
+                        Сохраняя традиционные итальянские рецепты, наш&nbsp;шеф Владимир Бектемиров добавляет в&nbsp;них тонкие авторские акценты, создавая современную классику с&nbsp;ярким вкусом.
                       </p>
                     </div>
                   </div>
@@ -1335,7 +1488,7 @@ function App() {
                   <span className="section-label">Локация</span>
                   <h2 className="section-title">Вид на собор</h2>
                   <p className="section-body">
-                    Наше кафе расположено в историческом сердце Ростова-на-Дону. Из больших арочных окон открывается величественный вид на золотые купола Кафедрального собора Рождества Пресвятой Богородицы. Вечером, когда собор подсвечивается мягким теплым светом, а на столах зажигаются свечи, атмосфера становится по-настоящему волшебной.
+                    Наше кафе расположено в&nbsp;историческом сердце Ростова-на-Дону. Из&nbsp;больших арочных окон открывается величественный вид на&nbsp;золотые купола Кафедрального собора Рождества Пресвятой Богородицы. Вечером, когда собор подсвечивается мягким теплым светом, а&nbsp;на&nbsp;столах зажигаются свечи, атмосфера становится по-настоящему волшебной.
                   </p>
                   <span className="font-cursive about-location-sig">La dolce vita, un po' più vicina</span>
                 </div>
@@ -1375,7 +1528,7 @@ function App() {
                 <span className="section-label">Семья Sisi</span>
                 <h2 className="section-title text-center">Люди, которые создают магию</h2>
                 <p className="section-body text-center max-w-720">
-                  Команда Cafe Sisi — это большая семья единомышленников. От поваров на открытой кухне до официантов в зале, каждый из нас влюблен в итальянскую культуру гостеприимства. Мы верим, что вкусная еда раскрывается по-настоящему только тогда, когда она подана с искренней заботой.
+                  Команда Cafe Sisi&nbsp;— это&nbsp;большая семья единомышленников. От&nbsp;поваров на&nbsp;открытой кухне до&nbsp;официантов в&nbsp;зале, каждый из&nbsp;нас влюблен в&nbsp;итальянскую культуру гостеприимства. Мы&nbsp;верим, что&nbsp;вкусная еда раскрывается по-настоящему только тогда, когда она&nbsp;подана с&nbsp;искренней заботой.
                 </p>
                 <div className="about-team-img-wrapper">
                   <AboutImage 
@@ -1393,33 +1546,33 @@ function App() {
                 <span className="section-label">Ресторанная группа</span>
                 <h2 className="section-title">Другие проекты Владимира Бектемирова</h2>
                 <p className="section-body">
-                  Cafe Sisi является частью яркой экосистемы авторских ресторанных проектов, развивающих гастрономическую культуру юга России.
+                  Cafe Sisi является частью яркой экосистемы авторских ресторанных проектов, развивающих гастрономическую культуру юга&nbsp;России.
                 </p>
                 
                 <div className="about-projects-grid">
                   <div className="project-card">
                     <h3 className="project-card-title">Лариса жарит</h3>
-                    <p className="project-card-desc">Мясной гриль-ресторан с сильным характером, сочными стейками и атмосферой настоящего гастрономического рок-н-ролла.</p>
+                    <p className="project-card-desc">Мясной гриль-ресторан с&nbsp;сильным характером, сочными стейками и&nbsp;атмосферой настоящего гастрономического рок-н-ролла.</p>
                   </div>
                   <div className="project-card">
                     <h3 className="project-card-title">Лариса пьет</h3>
-                    <p className="project-card-desc">Концептуальный бар с отличным выбором крафтового пива, авторских коктейлей и легкой непринужденной атмосферой.</p>
+                    <p className="project-card-desc">Концептуальный бар с&nbsp;отличным выбором крафтового пива, авторских коктейлей и&nbsp;легкой непринужденной атмосферой.</p>
                   </div>
                   <div className="project-card">
                     <h3 className="project-card-title">Казак</h3>
-                    <p className="project-card-desc">Ресторан современной казачьей кухни. Переосмысление локальных донских рецептов в авторском прочтении нашего шеф-повара.</p>
+                    <p className="project-card-desc">Ресторан современной казачьей кухни. Переосмысление локальных донских рецептов в&nbsp;авторском прочтении нашего шеф-повара.</p>
                   </div>
                   <div className="project-card">
                     <h3 className="project-card-title">Яга</h3>
-                    <p className="project-card-desc">Сказочное пространство современной русской кухни, вдохновленное фольклором, традиционными техниками печи и локальными продуктами.</p>
+                    <p className="project-card-desc">Сказочное пространство современной русской кухни, вдохновленное фольклором, традиционными техниками печи и&nbsp;локальными продуктами.</p>
                   </div>
                   <div className="project-card">
                     <h3 className="project-card-title">Макарошки</h3>
-                    <p className="project-card-desc">Уютный и демократичный формат семейного кафе, где паста и пицца объединяют за одним столом несколько поколений.</p>
+                    <p className="project-card-desc">Уютный и&nbsp;демократичный формат семейного кафе, где&nbsp;паста и&nbsp;пицца объединяют за&nbsp;одним столом несколько поколений.</p>
                   </div>
                   <div className="project-card">
                     <h3 className="project-card-title">Сорока</h3>
-                    <p className="project-card-desc">Локальная спешелти-кофейня с безупречным кофе, свежей ремесленной выпечкой и идеальной атмосферой для начала дня.</p>
+                    <p className="project-card-desc">Локальная спешелти-кофейня с&nbsp;безупречным кофе, свежей ремесленной выпечкой и&nbsp;идеальной атмосферой для&nbsp;начала дня.</p>
                   </div>
                 </div>
               </div>
@@ -1431,7 +1584,7 @@ function App() {
                 <span className="section-label">Benvenuti</span>
                 <h2 className="font-display about-cta-title">Ждем вас в гости</h2>
                 <p className="about-cta-body">
-                  Проведите время с теми, кто вам дорог, в уютной атмосфере Cafe Sisi. Забронируйте столик заранее или ознакомьтесь с меню.
+                  Проведите время с&nbsp;теми, кто&nbsp;вам дорог, в&nbsp;уютной атмосфере Cafe Sisi. Забронируйте столик заранее или&nbsp;ознакомьтесь с&nbsp;меню.
                 </p>
                 <div className="about-cta-actions">
                   <button className="btn btn-dark" onClick={() => setBookingOpen(true)}>
@@ -1463,7 +1616,7 @@ function App() {
                     key={video.id}
                     videoUrl={video.videoUrl}
                     slotClass={video.slotClass}
-                    onClick={() => setActiveStory(idx)}
+                    onClick={() => setActiveVideoIndex(idx)}
                     videoRef={video.id === 'left' ? leftVideoRef : video.id === 'middle' ? middleVideoRef : rightVideoRef}
                     onCanPlay={() => handleVideoCanPlay(video.id)}
                   />
@@ -1513,7 +1666,7 @@ function App() {
               transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
             >
               <span className="hero-mobile-cursive">Da Sisi con amore</span>
-              <h1 className="hero-mobile-title">Маленькая Италия<br />в центре города</h1>
+              <h1 className="hero-mobile-title">Маленькая Италия<br />в&nbsp;центре города</h1>
               
               <button className="btn hero-mobile-cta" onClick={() => setBookingOpen(true)}>
                 ЗАБРОНИРОВАТЬ СТОЛ
@@ -1536,9 +1689,9 @@ function App() {
                   variants={fadeInUp}
                 >
                   <span className="section-label">Наша кухня</span>
-                  <h2 className="section-title">Италия<br />в каждом блюде</h2>
+                  <h2 className="section-title">Италия<br />в&nbsp;каждом блюде</h2>
                   <p className="section-body">
-                    Мы используем лучшие ингредиенты и готовим с любовью — как в маленьких семейных тратториях на солнечном юге Италии.
+                    Мы&nbsp;используем лучшие ингредиенты и&nbsp;готовим с&nbsp;любовью&nbsp;— как&nbsp;в&nbsp;маленьких семейных тратториях на&nbsp;солнечном юге&nbsp;Италии.
                   </p>
                 </motion.div>
 
@@ -1558,17 +1711,17 @@ function App() {
                 >
                   <motion.div className="bullet-item" variants={fadeInUp}>
                     <span className="bullet-title">Свежая паста</span>
-                    <span className="bullet-desc">Ручная работа каждый день по старинным рецептам</span>
+                    <span className="bullet-desc">Ручная работа каждый день по&nbsp;старинным рецептам</span>
                   </motion.div>
                   
                   <motion.div className="bullet-item" variants={fadeInUp}>
                     <span className="bullet-title">Сезонные продукты</span>
-                    <span className="bullet-desc">Только лучшее от природы, фермерские сыры и томаты</span>
+                    <span className="bullet-desc">Только лучшее от&nbsp;природы, фермерские сыры и&nbsp;томаты</span>
                   </motion.div>
                   
                   <motion.div className="bullet-item" variants={fadeInUp}>
                     <span className="bullet-title">Традиционные рецепты</span>
-                    <span className="bullet-desc">Сохраняем истинный, неискаженный вкус юга Италии</span>
+                    <span className="bullet-desc">Сохраняем истинный, неискаженный вкус юга&nbsp;Италии</span>
                   </motion.div>
                 </motion.div>
               </div>
@@ -1591,7 +1744,7 @@ function App() {
                     <span className="section-label">Завтраки</span>
                     <h3 className="section-title" style={{ fontSize: '26px', margin: '8px 0 16px' }}>Начните день<br />по-итальянски</h3>
                     <p className="section-body" style={{ fontSize: '13px', margin: 0 }}>
-                      Ароматный свежесваренный эспрессо, хрустящие круассаны и воздушная фриттата, которые подарят вам энергию и солнце Италии.
+                      Ароматный свежесваренный эспрессо, хрустящие круассаны и&nbsp;воздушная фриттата, которые подарят вам&nbsp;энергию и&nbsp;солнце Италии.
                     </p>
                   </div>
                   
@@ -1623,7 +1776,7 @@ function App() {
                     <span className="section-label">Винная карта</span>
                     <h3 className="section-title" style={{ fontSize: '26px', margin: '8px 0 16px' }}>Подборка<br />лучших вин</h3>
                     <p className="section-body" style={{ fontSize: '13px', margin: 0 }}>
-                      Мы собрали коллекцию вин со всех регионов Италии — от легких венецианских пино гриджо до насыщенных пьемонтских бароло.
+                      Мы&nbsp;собрали коллекцию вин со&nbsp;всех регионов Италии&nbsp;— от&nbsp;легких венецианских пино гриджо до&nbsp;насыщенных пьемонтских бароло.
                     </p>
                   </div>
                   
@@ -1650,7 +1803,7 @@ function App() {
                 >
                   <span className="quote-mark">“</span>
                   <p className="quote-text">
-                    Хорошая еда — это честность. Простые качественные ингредиенты, настоящие влюбленные в свое дело люди и время, которое хочется растянуть.
+                    Хорошая еда&nbsp;— это&nbsp;честность. Простые качественные ингредиенты, настоящие влюбленные в&nbsp;свое дело люди и&nbsp;время, которое хочется растянуть.
                   </p>
                   <span className="quote-author">— Команда Cafe Sisi</span>
                 </motion.div>
@@ -1668,9 +1821,9 @@ function App() {
                   variants={fadeInUp}
                 >
                   <span className="section-label">О нас</span>
-                  <h2 className="section-title">Место,<br />где хорошо как дома</h2>
+                  <h2 className="section-title">Место,<br />где&nbsp;хорошо как&nbsp;дома</h2>
                   <p className="section-body">
-                    Каждое утро мы открываем двери Cafe Sisi, чтобы поделиться с вами частичкой нашей любви к Италии. У нас вы найдете теплые улыбки, заботу в каждой детали и гастрономические шедевры. Наша открытая кухня позволяет наблюдать за таинством раскатки пасты и выпекания пиццы.
+                    Каждое утро мы&nbsp;открываем двери Cafe Sisi, чтобы поделиться с&nbsp;вами частичкой нашей любви к&nbsp;Италии. У&nbsp;нас вы&nbsp;найдете теплые улыбки, заботу в&nbsp;каждой детали и&nbsp;гастрономические шедевры. Наша открытая кухня позволяет наблюдать за&nbsp;таинством раскатки пасты и&nbsp;выпекания пиццы.
                   </p>
                   <a href="/about" onClick={(e) => handleNavClick(e, '/about')} className="link-action">
                     Узнать больше о нас <ChevronRight size={14} />
@@ -1701,7 +1854,7 @@ function App() {
                   variants={fadeInUp}
                 >
                   <span className="section-label">Забронируйте свой стол</span>
-                  <h2 className="section-title">Мы ждем вас в гости</h2>
+                  <h2 className="section-title">Мы&nbsp;ждем вас в&nbsp;гости</h2>
                   
                   <div className="contact-details">
                     <div className="contact-item">
@@ -1804,19 +1957,19 @@ function App() {
         altText="Меню завтраков Cafe Sisi"
       />
 
-      {/* 9. Cinematic Story Viewer Lightbox */}
+      {/* 9. Enlarged Video Lightbox */}
       <AnimatePresence>
-        {activeStory !== null && (
+        {activeVideoIndex !== null && (
           <motion.div 
             className="modal-backdrop"
             style={{ zIndex: 300, backgroundColor: 'rgba(15, 12, 10, 0.95)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setActiveStory(null)}
+            onClick={handleCloseVideoModal}
           >
             <motion.div 
-              className="story-container"
+              className="video-modal-container"
               initial={{ scale: 0.9, y: 30 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 30 }}
@@ -1824,127 +1977,44 @@ function App() {
             >
               {/* Close Button */}
               <button 
-                onClick={() => setActiveStory(null)}
-                style={{
-                  position: 'absolute',
-                  top: '20px',
-                  right: '20px',
-                  background: 'rgba(0,0,0,0.5)',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '36px',
-                  height: '36px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  zIndex: 20
-                }}
+                onClick={handleCloseVideoModal}
+                className="video-modal-close-btn"
+                aria-label="Закрыть видео"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
 
-              {/* Progress Bar Header */}
-              <div style={{
-                position: 'absolute',
-                top: '15px',
-                left: '20px',
-                right: '20px',
-                display: 'flex',
-                gap: '6px',
-                zIndex: 20
-              }}>
-                {archesData.map((_, i) => (
-                  <div key={i} style={{ flex: 1, height: '3px', backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: '2px', overflow: 'hidden' }}>
-                    <motion.div 
-                      style={{ 
-                        height: '100%', 
-                        backgroundColor: '#fff',
-                        transformOrigin: 'left'
-                      }}
-                      initial={{ scaleX: i < activeStory ? 1 : 0 }}
-                      animate={{ 
-                        scaleX: i === activeStory 
-                          ? (storyPlaying ? 1 : 0) 
-                          : (i < activeStory ? 1 : 0) 
-                      }}
-                      transition={{ 
-                        duration: i === activeStory ? 5 : 0.2, 
-                        ease: 'linear'
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {/* Image background (Simulating cinemagraph) */}
-              <img 
-                src={archesData[activeStory].img} 
-                alt={archesData[activeStory].title} 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-
-              {/* Dark overlay gradients */}
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.85) 100%)',
-                zIndex: 10
-              }} />
-
-              {/* Video Player Controls & Info (Bottom) */}
-              <div className="story-details">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <span className="font-display" style={{ fontSize: '24px', letterSpacing: '0.05em' }}>
-                    {archesData[activeStory].title}
-                  </span>
-                  
-                  {/* Play/Pause control toggle */}
+              {videoModalError ? (
+                <div className="video-modal-error-state">
+                  <span className="error-title">Не удалось загрузить видео</span>
+                  <span className="error-desc">Пожалуйста, попробуйте позже или выберите другое окно.</span>
                   <button 
-                    onClick={() => setStoryPlaying(!storyPlaying)}
-                    style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}
+                    onClick={handleCloseVideoModal} 
+                    className="btn btn-outline" 
+                    style={{ marginTop: '20px', color: '#fff', borderColor: '#fff' }}
                   >
-                    {storyPlaying ? <Pause size={16} /> : <Play size={16} />}
+                    Закрыть
                   </button>
                 </div>
-                
-                <p className="font-body" style={{ fontSize: '13px', lineHeight: '1.6', opacity: 0.85, fontWeight: '400' }}>
-                  {archesData[activeStory].desc}
-                </p>
-                
-                <button 
-                  className="btn btn-dark"
-                  onClick={() => { setActiveStory(null); setBookingOpen(true); }}
-                  style={{ 
-                    marginTop: '24px', 
-                    width: '100%', 
-                    backgroundColor: '#fff', 
-                    color: 'var(--text-dark)',
-                    border: 'none',
-                    fontWeight: '700'
+              ) : (
+                <video
+                  ref={modalVideoRef}
+                  src={HERO_VIDEOS[activeVideoIndex].videoUrl}
+                  loop
+                  playsInline
+                  controls
+                  onError={() => {
+                    console.error(`[Video Modal] Error loading video: ${HERO_VIDEOS[activeVideoIndex].videoUrl}`);
+                    setVideoModalError(true);
                   }}
-                >
-                  Забронировать стол
-                </button>
-              </div>
-
-              {/* Swipe/Click Area for next/prev */}
-              <div 
-                style={{ position: 'absolute', top: 0, left: 0, width: '30%', height: '80%', zIndex: 12, cursor: 'w-resize' }} 
-                onClick={() => setActiveStory((prev) => prev > 0 ? prev - 1 : null)}
-              />
-              <div 
-                style={{ position: 'absolute', top: 0, right: 0, width: '70%', height: '80%', zIndex: 12, cursor: 'e-resize' }} 
-                onClick={() => setActiveStory((prev) => prev < archesData.length - 1 ? prev + 1 : null)}
-              />
+                  className="video-modal-player"
+                />
+              )}
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
 
       <AnimatePresence>
         {showScrollTop && (

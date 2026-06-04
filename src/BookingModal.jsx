@@ -99,7 +99,7 @@ const BookingModal = ({ isOpen, onClose }) => {
             {status !== 'success' ? (
               <>
                 <h3 className="modal-title">Забронировать стол</h3>
-                <p className="modal-subtitle">Заполните форму, и мы подтвердим вашу бронь в течение 5 минут</p>
+                <p className="modal-subtitle">Заполните форму, и&nbsp;мы&nbsp;подтвердим вашу бронь в&nbsp;течение 5&nbsp;минут</p>
 
                 <form className="booking-form" onSubmit={handleSubmit}>
                   {/* Name Input */}
@@ -252,9 +252,9 @@ const BookingModal = ({ isOpen, onClose }) => {
                 <h3 className="success-title">Стол забронирован!</h3>
                 <p className="success-body">
                   Спасибо, <strong>{formData.name}</strong>!<br />
-                  Мы ждем вас <strong>{new Date(formData.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</strong> в <strong>{formData.time}</strong>.<br />
+                  Мы&nbsp;ждем вас <strong>{new Date(formData.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</strong> в&nbsp;<strong>{formData.time}</strong>.<br />
                   Количество гостей: <strong>{formData.guests}</strong>.<br /><br />
-                  В ближайшие 5 минут мы отправим вам SMS-подтверждение на номер <strong>{formData.phone}</strong>.
+                  В&nbsp;ближайшие 5&nbsp;минут мы&nbsp;отправим вам&nbsp;SMS-подтверждение на&nbsp;номер <strong>{formData.phone}</strong>.
                 </p>
                 <button 
                   onClick={handleReset} 
