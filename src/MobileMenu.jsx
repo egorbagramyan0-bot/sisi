@@ -519,7 +519,7 @@ export const MobileMenu = ({
                 />
                 <div className="sm-panel-footer-contacts">
                   <p className="sm-panel-address">Темерницкая&nbsp;ул., 55</p>
-                  <a href="#" onClick={(e) => e.preventDefault()} className="sm-panel-phone">+7 (961) 436-56-80</a>
+                  <a href="#" onClick={(e) => e.preventDefault()} className="sm-panel-phone">+7 (999) 999-99-99</a>
                   
                   <div className="sm-panel-socials-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div className="sm-panel-socials">

@@ -1,6 +1,6 @@
 // central restaurant info configuration
 export const RESTAURANT_INFO = {
-  phone: "+7 (961) 436-56-80",
+  phone: "+7 (999) 999-99-99",
   address: "Темерницкая ул., 55",
   hours: "Ежедневно 10:00 – 23:00",
   socials: {

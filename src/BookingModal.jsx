@@ -136,7 +136,7 @@ const BookingModal = ({ isOpen, onClose }) => {
                           value={formData.phone}
                           onChange={handleChange}
                           className="form-input"
-                          placeholder="+7 (961) 436-56-80"
+                          placeholder="+7 (999) 999-99-99"
                           style={{ width: '100%', paddingLeft: '40px' }}
                           disabled={status === 'submitting'}
                         />
