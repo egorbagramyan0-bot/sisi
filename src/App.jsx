@@ -1656,7 +1656,7 @@ function App() {
           </div>
         </div>
         <div style={{ textAlign: 'center', marginTop: '40px', opacity: 0.4, fontSize: '10px', fontFamily: 'var(--font-body)', letterSpacing: '0.05em' }}>
-          &copy; {new Date().getFullYear()} Cafe Sisi Italy. Все права защищены.
+          Сайт создан исключительно в демонстрационных целях.
         </div>
       </footer>
 
