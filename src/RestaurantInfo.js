@@ -4,9 +4,9 @@ export const RESTAURANT_INFO = {
   address: "Темерницкая ул., 55",
   hours: "Ежедневно 10:00 – 23:00",
   socials: {
-    instagram: "https://www.instagram.com/sisi.cafe_/",
-    whatsapp: "https://wa.me/79882533383?utm_source=chatgpt.com",
-    yandexEda: "https://eda.yandex.ru/r/sisi_bistr?placeSlug=sisi_bistr"
+    instagram: "#",
+    whatsapp: "#",
+    yandexEda: "#"
   },
   images: {
     vladimirHero: "/vladimir.webp", // future portrait placeholder

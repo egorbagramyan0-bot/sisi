@@ -414,6 +414,7 @@ export const MobileMenu = ({
   // Handle action click (close menu first, then execute)
   const handleItemClick = (e, actionType, target) => {
     if (actionType === 'external') {
+      e.preventDefault();
       closeMenu();
       return;
     }
@@ -434,9 +435,8 @@ export const MobileMenu = ({
     { id: 'menu', num: '01', label: 'Меню', action: 'navigate', target: '/menu' },
     { id: 'breakfast', num: '02', label: 'Завтраки', action: 'modal', target: 'breakfast' },
     { id: 'wine', num: '03', label: 'Винная карта', action: 'modal', target: 'wine' },
-    { id: 'about', num: '04', label: 'О нас', action: 'navigate', target: '/about' },
-    { id: 'contacts', num: '05', label: 'Контакты', action: 'navigate', target: '/#contacts' },
-    { id: 'delivery', num: '06', label: 'Доставка', action: 'external', target: 'https://eda.yandex.ru/r/sisi_bistr?placeSlug=sisi_bistr' }
+    { id: 'contacts', num: '04', label: 'Контакты', action: 'navigate', target: '/#contacts' },
+    { id: 'delivery', num: '05', label: 'Доставка', action: 'external', target: '#' }
   ];
 
   return (
@@ -483,7 +483,7 @@ export const MobileMenu = ({
                 {navItems.map((it) => {
                   const isActive = it.id === 'menu'
                     ? currentPath === '/menu'
-                    : (it.id === 'about' ? currentPath === '/about' : (activeSection === it.id && currentPath !== '/menu' && currentPath !== '/about'));
+                    : (activeSection === it.id && currentPath !== '/menu');
 
                   return (
                     <li className="sm-panel-itemWrap" key={it.id}>
@@ -519,14 +519,14 @@ export const MobileMenu = ({
                 />
                 <div className="sm-panel-footer-contacts">
                   <p className="sm-panel-address">Темерницкая&nbsp;ул., 55</p>
-                  <a href="tel:+79614365680" className="sm-panel-phone">+7 (961) 436-56-80</a>
+                  <a href="#" onClick={(e) => e.preventDefault()} className="sm-panel-phone">+7 (961) 436-56-80</a>
                   
                   <div className="sm-panel-socials-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div className="sm-panel-socials">
-                      <a href={RESTAURANT_INFO.socials.instagram} target="_blank" rel="noreferrer" className="sm-panel-social-link">
+                      <a href={RESTAURANT_INFO.socials.instagram} onClick={(e) => e.preventDefault()} target="_blank" rel="noreferrer" className="sm-panel-social-link">
                         Instagram
                       </a>
-                      <a href={RESTAURANT_INFO.socials.whatsapp} target="_blank" rel="noreferrer" className="sm-panel-social-link">
+                      <a href={RESTAURANT_INFO.socials.whatsapp} onClick={(e) => e.preventDefault()} target="_blank" rel="noreferrer" className="sm-panel-social-link">
                         WhatsApp
                       </a>
                     </div>

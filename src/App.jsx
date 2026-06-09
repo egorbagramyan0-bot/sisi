@@ -66,30 +66,7 @@ const FacadeWindow = ({ videoUrl, slotClass, onClick, videoRef, onCanPlay }) => 
   );
 };
 
-const AboutImage = ({ src, alt, className, label }) => {
-  const [hasError, setHasError] = useState(false);
-  const isPlaceholder = !src || src.includes('placeholder') || src.includes('vladimir_path') || src.includes('crew_photo');
 
-  if (isPlaceholder || hasError) {
-    return (
-      <div className={`about-image-placeholder-frame ${className || ''}`}>
-        <div className="about-placeholder-inner">
-          <span className="about-placeholder-label">{label || alt}</span>
-          <span className="about-placeholder-sub">Ожидание фотоматериала</span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <img 
-      src={src} 
-      alt={alt} 
-      className={className} 
-      onError={() => setHasError(true)} 
-    />
-  );
-};
 
 const MenuCardImage = ({ src, alt, categoryId }) => {
   const [hasError, setHasError] = useState(false);
@@ -504,7 +481,7 @@ function App() {
   // Smooth continuous rotation loop for Spaghetti Ring visual with speed transitions
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion || (currentPath !== '/' && currentPath !== '/about')) {
+    if (prefersReducedMotion || currentPath !== '/') {
       return;
     }
 
@@ -548,12 +525,7 @@ function App() {
       if (metaDesc) {
         metaDesc.setAttribute('content', 'Изысканное цифровое меню ресторана Cafe Sisi. Попробуйте нашу домашнюю пасту ручной работы, традиционную римскую пиццу и фирменные итальянские десерты.');
       }
-    } else if (currentPath === '/about') {
-      document.title = "О Cafe Sisi и Владимире Бектемирове | Итальянское cafe в Ростове-на-Дону";
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) {
-        metaDesc.setAttribute('content', 'История Cafe Sisi - семейного cafe, вдохновленного итальянской кухней. Авторский проект ресторатора и шеф-повара Владимира Бектемирова в центре Ростова-на-Дону.');
-      }
+
     } else {
       document.title = "Cafe Sisi | Итальянский ресторан в Ростове-на-Дону";
       const metaDesc = document.querySelector('meta[name="description"]');
@@ -841,7 +813,7 @@ function App() {
         });
       } else {
         // ScrollSpy logic to highlight active navbar section
-        const sections = ['menu', 'breakfast', 'wine', 'about', 'contacts'];
+        const sections = ['menu', 'breakfast', 'wine', 'contacts'];
         let currentSection = '';
 
         for (const sectionId of sections) {
@@ -1173,20 +1145,15 @@ function App() {
                     <span className="nav-link-text" data-text="Винная карта">Винная карта</span>
                   </span>
                 </a>
-                <a href="/about" onClick={(e) => handleNavClick(e, '/about')} className={`nav-link ${currentPath === '/about' ? 'active' : ''}`}>
+                <a href="#contacts" onClick={(e) => handleNavClick(e, '/#contacts')} className={`nav-link ${activeSection === 'contacts' && currentPath !== '/menu' ? 'active' : ''}`}>
                   <span className="nav-link-num">04</span>
-                  <span className="nav-link-text-wrapper">
-                    <span className="nav-link-text" data-text="О нас">О нас</span>
-                  </span>
-                </a>
-                <a href="#contacts" onClick={(e) => handleNavClick(e, '/#contacts')} className={`nav-link ${activeSection === 'contacts' && currentPath !== '/menu' && currentPath !== '/about' ? 'active' : ''}`}>
-                  <span className="nav-link-num">05</span>
                   <span className="nav-link-text-wrapper">
                     <span className="nav-link-text" data-text="Контакты">Контакты</span>
                   </span>
                 </a>
                 <a 
-                  href="https://eda.yandex.ru/r/sisi_bistr?placeSlug=sisi_bistr" 
+                  href="#" 
+                  onClick={(e) => e.preventDefault()}
                   target="_blank" 
                   rel="noreferrer" 
                   className="nav-link nav-link-delivery"
@@ -1358,248 +1325,7 @@ function App() {
             </section>
           </div>
         </div>
-      ) : currentPath === '/about' ? (
-        <div className="main-content-layout">
-          <div className="about-page-container">
-            {/* Section 1: Intro / Vladimir Bektemirov */}
-            <section className="about-intro-section">
-              <div className="about-intro-grid">
-                <div className="about-intro-left">
-                  <div className="vladimir-img-wrapper">
-                    <AboutImage 
-                      src={RESTAURANT_INFO.images.vladimirHero} 
-                      alt="Портрет Владимира Бектемирова" 
-                      label="Владимир Бектемиров"
-                      className="vladimir-hero-img"
-                    />
-                  </div>
-                </div>
-                <div className="about-intro-right">
-                  <span className="section-label">Шеф-повар и&nbsp;ресторатор</span>
-                  <h1 className="font-display about-chef-name">Владимир<br />Бектемиров</h1>
-                  <p className="font-serif about-chef-quote">
-                    «Для&nbsp;меня еда&nbsp;— это способ выразить заботу, поделиться теплом и&nbsp;рассказать историю о&nbsp;традициях, которые мы&nbsp;бережно храним и&nbsp;переосмысляем с&nbsp;любовью».
-                  </p>
-                  <div className="about-chef-signature">
-                    <span className="font-cursive">con amore, Vladimir</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-
-            {/* Section 3: Typographical Quote */}
-            <section className="about-quote-section">
-              <div className="about-quote-container">
-                <span className="quote-mark">“</span>
-                <p className="about-quote-text font-serif">
-                  Sisi&nbsp;— это маленькая Италия в&nbsp;самом сердце Ростова. Место, где&nbsp;время замедляет свой ход, а&nbsp;простые вещи&nbsp;— свежая паста, бокал вина и&nbsp;улыбка близкого человека&nbsp;— обретают истинную ценность.
-                </p>
-                <span className="font-cursive about-quote-sig">Da Sisi con amore</span>
-              </div>
-            </section>
-
-            {/* Section 4: Concept Block */}
-            <section className="about-concept-section">
-              <div className="about-concept-grid">
-                <div className="about-concept-left">
-                  <span className="section-label">Концепция</span>
-                  <h2 className="section-title">Теплый итальянский минимализм</h2>
-                  <p className="section-body">
-                    Интерьер Cafe Sisi задуман как&nbsp;продолжение нашей философии: ничего лишнего, только естественная красота и&nbsp;уют. Мы&nbsp;использовали натуральные материалы&nbsp;— дерево, глину, терракоту и&nbsp;лен. Мягкий свет, теплые песочные оттенки и&nbsp;обилие живых растений создают ощущение загородного дома на&nbsp;холмах Тосканы.
-                  </p>
-                  <span className="font-cursive about-concept-sig">Benvenuti a casa</span>
-                </div>
-                <div className="about-concept-right">
-                  <div className="about-concept-img-wrapper">
-                    <AboutImage 
-                      src={RESTAURANT_INFO.images.interiorMain} 
-                      alt="Интерьер Cafe Sisi" 
-                      label="Интерьер траттории"
-                    />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Section 5: Kitchen Principles (Rotating Spaghetti Ring) */}
-            <section className="about-principles-section">
-              <div className="about-principles-grid">
-                <div className="about-principles-left">
-                  <span className="section-label">Принципы</span>
-                  <h2 className="section-title">Три столпа нашей кухни</h2>
-                  
-                  <div className="about-principles-list">
-                    <div className="about-principle-item">
-                      <h3 className="about-principle-title">01 / Свежая паста</h3>
-                      <p className="about-principle-desc">
-                        Мы&nbsp;лепим и&nbsp;катаем пасту вручную каждое утро, используя исключительно итальянскую муку из&nbsp;твердых сортов пшеницы Semola и&nbsp;свежие фермерские желтки. Это&nbsp;сердце нашего меню.
-                      </p>
-                    </div>
-                    <div className="about-principle-item">
-                      <h3 className="about-principle-title">02 / Сезонные продукты</h3>
-                      <p className="about-principle-desc">
-                        Меню Cafe Sisi меняется вслед за&nbsp;сезонами. Мы&nbsp;работаем напрямую с&nbsp;местными фермерами и&nbsp;поставщиками, чтобы отбирать только самые спелые томаты, свежую зелень и&nbsp;фермерские сыры.
-                      </p>
-                    </div>
-                    <div className="about-principle-item">
-                      <h3 className="about-principle-title">03 / Авторский взгляд</h3>
-                      <p className="about-principle-desc">
-                        Сохраняя традиционные итальянские рецепты, наш&nbsp;шеф Владимир Бектемиров добавляет в&nbsp;них тонкие авторские акценты, создавая современную классику с&nbsp;ярким вкусом.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="about-principles-right">
-                  <div className="about-ring-wrapper">
-                    <div 
-                      className="spaghetti-ring-container"
-                      onMouseEnter={() => { isRingHovered.current = true; }}
-                      onMouseLeave={() => { isRingHovered.current = false; }}
-                    >
-                      <div className="spaghetti-ring-wrapper-inner">
-                        <img 
-                          ref={spaghettiRingRef}
-                          src="/cafe_sisi_spaghetti_ring.svg" 
-                          className="spaghetti-ring-image" 
-                          alt="Cafe Sisi Spaghetti Ring" 
-                        />
-                      </div>
-                      <div className="spaghetti-ring-center">
-                        <a 
-                          href="/menu" 
-                          onClick={(e) => handleNavClick(e, '/menu')} 
-                          className="spaghetti-ring-btn"
-                        >
-                          СМОТРЕТЬ МЕНЮ
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Section 6: Location & Cathedral View */}
-            <section className="about-location-section">
-              <div className="about-location-grid">
-                <div className="about-location-left">
-                  <span className="section-label">Локация</span>
-                  <h2 className="section-title">Вид на собор</h2>
-                  <p className="section-body">
-                    Наше кафе расположено в&nbsp;историческом сердце Ростова-на-Дону. Из&nbsp;больших арочных окон открывается величественный вид на&nbsp;золотые купола Кафедрального собора Рождества Пресвятой Богородицы. Вечером, когда собор подсвечивается мягким теплым светом, а&nbsp;на&nbsp;столах зажигаются свечи, атмосфера становится по-настоящему волшебной.
-                  </p>
-                  <span className="font-cursive about-location-sig">La dolce vita, un po' più vicina</span>
-                </div>
-                <div className="about-location-right">
-                  <div className="about-cathedral-gallery">
-                    <div className="cathedral-img-main">
-                      <AboutImage 
-                        src={RESTAURANT_INFO.images.cathedralView} 
-                        alt="Вид на собор из окон Cafe Sisi" 
-                        label="Вид на Кафедральный собор"
-                      />
-                    </div>
-                    <div className="cathedral-img-sub-grid">
-                      <div className="cathedral-img-sub">
-                        <AboutImage 
-                          src={RESTAURANT_INFO.images.cathedralDetail1} 
-                          alt="Детали интерьера" 
-                          label="Утренний свет"
-                        />
-                      </div>
-                      <div className="cathedral-img-sub">
-                        <AboutImage 
-                          src={RESTAURANT_INFO.images.cathedralDetail2} 
-                          alt="Собор вечером" 
-                          label="Вечерняя подсветка"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Section 7: Team & Guests */}
-            <section className="about-team-section">
-              <div className="about-team-container">
-                <span className="section-label">Семья Sisi</span>
-                <h2 className="section-title text-center">Люди, которые создают магию</h2>
-                <p className="section-body text-center max-w-720">
-                  Команда Cafe Sisi&nbsp;— это&nbsp;большая семья единомышленников. От&nbsp;поваров на&nbsp;открытой кухне до&nbsp;официантов в&nbsp;зале, каждый из&nbsp;нас влюблен в&nbsp;итальянскую культуру гостеприимства. Мы&nbsp;верим, что&nbsp;вкусная еда раскрывается по-настоящему только тогда, когда она&nbsp;подана с&nbsp;искренней заботой.
-                </p>
-                <div className="about-team-img-wrapper">
-                  <AboutImage 
-                    src={RESTAURANT_INFO.images.crewPhoto} 
-                    alt="Команда Cafe Sisi" 
-                    label="Наша большая семья"
-                  />
-                </div>
-              </div>
-            </section>
-
-            {/* Section 8: Other Projects List */}
-            <section className="about-projects-section">
-              <div className="about-projects-container">
-                <span className="section-label">Ресторанная группа</span>
-                <h2 className="section-title">Другие проекты Владимира Бектемирова</h2>
-                <p className="section-body">
-                  Cafe Sisi является частью яркой экосистемы авторских ресторанных проектов, развивающих гастрономическую культуру юга&nbsp;России.
-                </p>
-                
-                <div className="about-projects-grid">
-                  <div className="project-card">
-                    <h3 className="project-card-title">Лариса жарит</h3>
-                    <p className="project-card-desc">Мясной гриль-ресторан с&nbsp;сильным характером, сочными стейками и&nbsp;атмосферой настоящего гастрономического рок-н-ролла.</p>
-                  </div>
-                  <div className="project-card">
-                    <h3 className="project-card-title">Лариса пьет</h3>
-                    <p className="project-card-desc">Концептуальный бар с&nbsp;отличным выбором крафтового пива, авторских коктейлей и&nbsp;легкой непринужденной атмосферой.</p>
-                  </div>
-                  <div className="project-card">
-                    <h3 className="project-card-title">Казак</h3>
-                    <p className="project-card-desc">Ресторан современной казачьей кухни. Переосмысление локальных донских рецептов в&nbsp;авторском прочтении нашего шеф-повара.</p>
-                  </div>
-                  <div className="project-card">
-                    <h3 className="project-card-title">Яга</h3>
-                    <p className="project-card-desc">Сказочное пространство современной русской кухни, вдохновленное фольклором, традиционными техниками печи и&nbsp;локальными продуктами.</p>
-                  </div>
-                  <div className="project-card">
-                    <h3 className="project-card-title">Макарошки</h3>
-                    <p className="project-card-desc">Уютный и&nbsp;демократичный формат семейного кафе, где&nbsp;паста и&nbsp;пицца объединяют за&nbsp;одним столом несколько поколений.</p>
-                  </div>
-                  <div className="project-card">
-                    <h3 className="project-card-title">Сорока</h3>
-                    <p className="project-card-desc">Локальная спешелти-кофейня с&nbsp;безупречным кофе, свежей ремесленной выпечкой и&nbsp;идеальной атмосферой для&nbsp;начала дня.</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Section 9: Final CTA */}
-            <section className="about-cta-booking">
-              <div className="about-cta-card">
-                <span className="section-label">Benvenuti</span>
-                <h2 className="font-display about-cta-title">Ждем вас в гости</h2>
-                <p className="about-cta-body">
-                  Проведите время с&nbsp;теми, кто&nbsp;вам дорог, в&nbsp;уютной атмосфере Cafe Sisi. Забронируйте столик заранее или&nbsp;ознакомьтесь с&nbsp;меню.
-                </p>
-                <div className="about-cta-actions">
-                  <button className="btn btn-dark" onClick={() => setBookingOpen(true)}>
-                    Забронировать стол
-                  </button>
-                  <a href="/menu" onClick={(e) => handleNavClick(e, '/menu')} className="btn btn-outline">
-                    Смотреть меню
-                  </a>
-                </div>
-                <span className="font-cursive about-cta-sig">A presto</span>
-              </div>
-            </section>
-          </div>
-        </div>
-      ) : (
+) : (
         <>
           {/* 2. Hero Section - Facade with Live Video Windows */}
           <section className="hero-facade-section">
@@ -1825,9 +1551,7 @@ function App() {
                   <p className="section-body">
                     Каждое утро мы&nbsp;открываем двери Cafe Sisi, чтобы поделиться с&nbsp;вами частичкой нашей любви к&nbsp;Италии. У&nbsp;нас вы&nbsp;найдете теплые улыбки, заботу в&nbsp;каждой детали и&nbsp;гастрономические шедевры. Наша открытая кухня позволяет наблюдать за&nbsp;таинством раскатки пасты и&nbsp;выпекания пиццы.
                   </p>
-                  <a href="/about" onClick={(e) => handleNavClick(e, '/about')} className="link-action">
-                    Узнать больше о нас <ChevronRight size={14} />
-                  </a>
+
                 </motion.div>
 
                 <motion.div 
@@ -1912,17 +1636,16 @@ function App() {
             <a href="/menu" onClick={(e) => handleNavClick(e, '/menu')} className="footer-link">Меню</a>
             <a href="#breakfast" onClick={(e) => { e.preventDefault(); setBreakfastOpen(true); }} className="footer-link">Завтраки</a>
             <a href="#wine" onClick={(e) => { e.preventDefault(); setWineCardOpen(true); }} className="footer-link">Винная карта</a>
-            <a href="/about" onClick={(e) => handleNavClick(e, '/about')} className="footer-link">О нас</a>
             <a href="#contacts" onClick={(e) => handleNavClick(e, '/#contacts')} className="footer-link">Контакты</a>
           </div>
 
           <div className="footer-socials-wrapper">
             <div className="footer-socials">
-              <a href={RESTAURANT_INFO.socials.instagram} target="_blank" rel="noreferrer" className="social-link">
+              <a href={RESTAURANT_INFO.socials.instagram} onClick={(e) => e.preventDefault()} target="_blank" rel="noreferrer" className="social-link">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', verticalAlign: 'middle' }}><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
                 Instagram
               </a>
-              <a href={RESTAURANT_INFO.socials.whatsapp} target="_blank" rel="noreferrer" className="social-link">
+              <a href={RESTAURANT_INFO.socials.whatsapp} onClick={(e) => e.preventDefault()} target="_blank" rel="noreferrer" className="social-link">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
                 WhatsApp
               </a>
